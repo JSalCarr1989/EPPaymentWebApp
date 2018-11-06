@@ -10,26 +10,40 @@ $(function () {
 
 
         var requestData = {
-            mpaccount:$('#mp_account').val(),
-            mpproduct: $('#mp_product').val(),
-            mporder: $('#mp_order').val(),
-            mpreference: $('#mp_reference').val(),
-            mpnode: $('#mp_node').val(),
-            mpconcept: $('#mp_concept').val(),
-            mpamount: $('#mp_amount').val(),
-            mpcustomername: $('#mp_customername').val(),
-            mpcurrency: $('#mp_currency').val(),
-            mpsignature: $('#mp_signature').val(),
-            mpurlsuccess: $('#mp_urlsuccess').val(),
-            mpurlfailure: $('#mp_urlfailure').val(),
-            mpregistersb: $('#mp_registersb').val()
+            MpAccount:$('#mp_account').val(),
+            MpProduct: $('#mp_product').val(),
+            MpOrder: $('#mp_order').val(),
+            MpReference: $('#mp_reference').val(),
+            MpNode: $('#mp_node').val(),
+            MpConcept: $('#mp_concept').val(),
+            MpAmount: $('#mp_amount').val(),
+            MpCustomerName: $('#mp_customername').val(),
+            MpCurrency: $('#mp_currency').val(),
+            MpSignature: $('#mp_signature').val(),
+            MpUrlSuccess: $('#mp_urlsuccess').val(),
+            MpUrlFailure: $('#mp_urlfailure').val(),
+            MpRegisterSb: $('#mp_registersb').val()
         }
 
 
-        console.log(requestData);
+        console.log(JSON.stringify(requestData));
 
 
-        return true;
+        $.ajax({
+            url: 'https://localhost:5001/api/RequestPayment',
+            type: 'post',
+            dataType: 'json',
+            contentType:'application/json',
+            data: JSON.stringify(requestData),
+            success: function (response) {
+                console.log(response);
+            }
+        })
+
+       
+
+
+        return false;
     })
 
 

@@ -47,10 +47,14 @@ namespace EPPaymentWebApp
             else
             {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
             }
 
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
+
+
 
             app.UseMvc(routes =>
             {
@@ -58,6 +62,7 @@ namespace EPPaymentWebApp
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
         }
     }
 }
