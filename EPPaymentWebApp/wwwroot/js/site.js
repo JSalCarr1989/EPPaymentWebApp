@@ -26,8 +26,9 @@ $(function () {
         }
 
 
-        console.log(JSON.stringify(requestData));
+        //console.log(JSON.stringify(requestData));
 
+      
 
         $.ajax({
             url: 'https://localhost:5001/api/RequestPayment',
@@ -35,15 +36,19 @@ $(function () {
             dataType: 'json',
             contentType:'application/json',
             data: JSON.stringify(requestData),
+            statusCode: {
+
+                201: function () {
+                    console.log("it was a 201");
+                }
+
+            },
             success: function (response) {
                 console.log(response);
             }
         })
 
-       
-
-
-        return false;
+        return true;
     })
 
 
