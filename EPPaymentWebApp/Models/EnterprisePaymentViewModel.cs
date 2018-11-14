@@ -34,6 +34,7 @@ namespace EPPaymentWebApp.Models
         public string BillingAccount { get; set; } 
         public string Currency { get; set; } 
         public string CreateToken { get; set; }
+        public int  BeginPaymentId { get; set; }
         public string Mp_account { get; set; } 
         public string Mp_product { get; set; } 
         public string Mp_order { get; set; }  

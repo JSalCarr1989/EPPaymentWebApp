@@ -2,7 +2,7 @@
 
 <div class="row">
     <div class="col-md-6">
-        <form id="requestPaymentForm" action="http://www.google.com" method="post">
+        <form id="requestPaymentForm" action="" method="post">
             <div class="form-group">
                 <label for="Mp_order">Service Request</label>
                 <input type="text" name="mp_order" id="mp_order" value=@Model.Mp_order class="form-control" disabled />
@@ -16,6 +16,7 @@
                 <input type="text" name="mp_customername" id="mp_customername" class="form-control" placeholder="Nombre Pagador" />
                 <label for="CreateToken">¿Solicito Token?</label>
                 <input type="text" id="CreateToken" value=@Model.CreateToken class="form-control" disabled />
+                <input type="hidden" id="BeginPaymentId" value=@Model.BeginPaymentId class="form-control" />
                 <input type="hidden" name="mp_account" id="mp_account" value=@Model.Mp_account class="form-control" />
                 <input type="hidden" name="mp_product" id="mp_product" value=@Model.Mp_product class="form-control" />
                 <input type="hidden" name="mp_reference" id="mp_reference" value=@Model.Mp_reference class="form-control" />

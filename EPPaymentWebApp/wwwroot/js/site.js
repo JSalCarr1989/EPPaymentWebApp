@@ -8,6 +8,10 @@ $(function () {
     $("#requestPaymentForm").submit(function (e) {
 
 
+        var hash = CryptoJS.HmacSHA256($('#mp_order').val() + $('#mp_reference') + $('#mp_amount').val(), "secret");
+        var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
+        
+
 
         var requestData = {
             MpAccount:$('#mp_account').val(),
@@ -19,14 +23,15 @@ $(function () {
             MpAmount: $('#mp_amount').val(),
             MpCustomerName: $('#mp_customername').val(),
             MpCurrency: $('#mp_currency').val(),
-            MpSignature: $('#mp_signature').val(),
+            MpSignature: hashInBase64,
             MpUrlSuccess: $('#mp_urlsuccess').val(),
             MpUrlFailure: $('#mp_urlfailure').val(),
-            MpRegisterSb: $('#mp_registersb').val()
+            MpRegisterSb: $('#mp_registersb').val(),
+            BeginPaymentId: $('#BeginPaymentId').val()
         }
 
 
-        //console.log(JSON.stringify(requestData));
+        console.log(JSON.stringify(requestData));
 
       
 
@@ -48,7 +53,7 @@ $(function () {
             }
         })
 
-        return true;
+        return false;
     })
 
 
