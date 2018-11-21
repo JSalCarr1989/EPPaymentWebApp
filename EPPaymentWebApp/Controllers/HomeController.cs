@@ -8,6 +8,7 @@ using EPPaymentWebApp.Models;
 using EPPaymentWebApp.Interfaces;
 using EPPaymentWebApp.Helpers;
 using System.ServiceModel;
+using Microsoft.AspNetCore.Http;
 
 namespace EPPaymentWebApp.Controllers
 {
@@ -20,6 +21,7 @@ namespace EPPaymentWebApp.Controllers
         private readonly IEndPaymentRepository _endPaymentRepo;
         private readonly IResponseBankRequestTypeTibcoRepository _responseBankRequestTypeTybcoRepo;
         private BeginPayment _beginPayment = new BeginPayment();
+        private EndPayment _endPayment = new EndPayment();
 
 
 
@@ -46,7 +48,9 @@ namespace EPPaymentWebApp.Controllers
 
                 if  (_beginPayment != null)
                 {
-                    var viewModel = BeginPaymentHelpers.GenerateEnterprisePaymentViewModel(_beginPayment);
+                    var viewModel = EnterprisePaymentHelpers.GenerateEnterprisePaymentViewModel(_beginPayment);
+
+                    EnterprisePaymentHelpers.SetObjectAsJson(HttpContext.Session,"viewModelobject",viewModel);
 
                     return View(viewModel);
                 }
@@ -65,41 +69,77 @@ namespace EPPaymentWebApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> HandleResponse()
-        { 
-            //1.- obtener el id del requestpayment 
-            var logPayment = _logPaymentRepo.GetLastRequestPaymentId(0,"","","");
-            //2.- mapear campos a insertar
-            ResponsePaymentDTO responsePaymentDTO = new ResponsePaymentDTO
+        public async Task<IActionResult> HandleResponse([FromForm] MultiPagosResponsePaymentDTO multiPagosResponse)
+        {
+
+            //0.- Validar hash que se recibió de multipagos.
+          
+          var ValidHash =  EnterprisePaymentHelpers.ValidateMultipagosHash(multiPagosResponse);
+          
+            //1.- obtener el id del requestpayment previo a la respuesta
+            var logPayment = _logPaymentRepo.GetLastRequestPaymentId(
+                multiPagosResponse.mp_amount,
+                multiPagosResponse.mp_order,
+                multiPagosResponse.mp_reference,
+                "REQUEST_PAYMENT");
+
+            //si el hash es valido
+            if (ValidHash)
             {
-                MpOrder = "",
-                MpReference = "",
-                MpAmount = 0.00M,
-                MpPaymentMethod = "",
-                MpResponse = "",
-                MpResponseMsg = "",
-                MpAuthorization = "",
-                MpSignature = "",
-                MpPan = "",
-                MpDate = "",
-                MpBankName = "",
-                MpFolio = "",
-                MpSbToken = "",
-                MpSaleId = 1,
-                MpCardHolderName = "Salvatore",
-                ResponsePaymentTypeDescription = "",
-                RequestPaymentId = logPayment.RequestPaymentId
-            };
-            //3.- guardar el responsepayment en base de datos (endpayment se guarda a su vez con trigger)
-            int responsePaymentId = _responsePaymentRepo.CreateResponsePayment(responsePaymentDTO);
-            //4.- obtener el endpayment de base de datos
-            var endPayment = _endPaymentRepo.GetEndPaymentByResponsePaymentId(responsePaymentId);
-            //5.- enviar el endpayment a tibco.
-            string resultMessage = await _responseBankRequestTypeTybcoRepo.SendEndPaymentToTibco(endPayment);
-            //6.-enviar los datos a la vista.
-            return Content("Hola");
+                //2.- mapear campos a insertar
+                var responsePaymentDTO = EnterprisePaymentHelpers.GenerateResponsePaymentDTO(
+                    multiPagosResponse,
+                    logPayment.RequestPaymentId,
+                    "HASH_VALIDO");
+
+                //3.- guardar el responsepayment en base de datos (endpayment se guarda a su vez con trigger)
+                int responsePaymentId = _responsePaymentRepo.CreateResponsePayment(responsePaymentDTO);
+                //4.- obtener el endpayment de base de datos
+                _endPayment = _endPaymentRepo.GetEndPaymentByResponsePaymentId(responsePaymentId);
+
+                //validar que el endpayment no tenga estatus de enviado, si tiene estatus de enviado no enviar.
+                if (_endPaymentRepo.ValidateEndPaymentSentStatus(_endPayment.EndPaymentId) != true)
+                {
+                    string resultMessage = await _responseBankRequestTypeTybcoRepo.SendEndPaymentToTibco(_endPayment);
+                    //Si la respuesta fue satisfactoria actualiza el estatus de endpayment en bd a enviado.
+                    if(resultMessage == "OK")
+                    {
+                        var udpatedEndPaymentId = _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, "ENVIADO_TIBCO");
+                    }
+                }
+
+
+            }
+            else // si el hash no es valido.
+            {
+                var responsePaymentDTO = EnterprisePaymentHelpers.GenerateResponsePaymentDTO(
+                                         multiPagosResponse,
+                                         logPayment.RequestPaymentId,
+                                         "HASH_INVALIDO");
+
+                //3.- guardar el responsepayment en base de datos (endpayment se guarda a su vez con trigger)
+                int responsePaymentId = _responsePaymentRepo.CreateResponsePayment(responsePaymentDTO);
+                //4.- obtener el endpayment de base de datos
+                _endPayment = _endPaymentRepo.GetEndPaymentByResponsePaymentId(responsePaymentId);
+
+            }
+
+            //6.-Cargar los datos de la vista desde la  base de datos ( ¿obtenerlos de la sesion? )
+            var viewModelSessionObject = EnterprisePaymentHelpers.GetObjectFromJson<EnterprisePaymentViewModel>(HttpContext.Session, "viewModelobject");
+
+            viewModelSessionObject.BankResponse = $"{_endPayment.ResponseCode} - {_endPayment.ResponseMessage}";
+            viewModelSessionObject.TransactionNumber = _endPayment.TransactionNumber;
+            viewModelSessionObject.Token = _endPayment.Token;
+            viewModelSessionObject.CcLastFour = _endPayment.CcLastFour;
+            viewModelSessionObject.IssuingBank = _endPayment.IssuingBank;
+            viewModelSessionObject.CcType = _endPayment.CcType;
+
+            //7.-enviar los datos a la vista.
+            return View(viewModelSessionObject);
 
         }
+
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

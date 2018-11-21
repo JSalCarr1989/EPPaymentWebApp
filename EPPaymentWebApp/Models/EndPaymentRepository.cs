@@ -36,5 +36,36 @@ namespace EPPaymentWebApp.Models
                 return result;
             }
         }
+
+        public int UpdateEndPaymentSentStatus(int endPaymentId,string endPaymentSentStatus)
+        {
+            using (IDbConnection conn = Connection)
+            {
+              
+               var parameters = new DynamicParameters();
+
+               parameters.Add("@ENDPAYMENT_ID", endPaymentId);
+               parameters.Add("@ENDPAYMENT_SENT_STATUS", endPaymentSentStatus);
+               parameters.Add("@UPDATED_ENDPAYMENT_ID", 
+                   dbType: DbType.Int32, 
+                   direction: ParameterDirection.Output);
+
+                conn.Open();
+
+                var result = conn.QueryFirstOrDefault<int>("UPDATE_ENDPAYMENT_SENT_STATUS",parameters,commandType: CommandType.StoredProcedure);
+
+                return result;
+            }
+        }
+
+        public bool ValidateEndPaymentSentStatus(int endPaymentId)
+        {
+            using (IDbConnection conn = Connection)
+            {
+                conn.Open();
+                var result = conn.QueryFirstOrDefault<String>("GET_ENDPAYMENT_SENT_STATUS_BY_ID", new { ENDPAYMENT_ID = endPaymentId }, commandType: CommandType.StoredProcedure);
+                return (result == "ENVIADO_TIBCO") ? true : false;
+            }
+        }
     }
 }

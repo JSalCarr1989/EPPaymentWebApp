@@ -31,6 +31,16 @@ namespace EPPaymentWebApp
             services.AddTransient<IEndPaymentRepository, EndPaymentRepository>();
             services.AddTransient<IResponseBankRequestTypeTibcoRepository, ResponseBankRequestTypeTibcoRepository>();
 
+            services.AddDistributedMemoryCache();
+
+            services.AddSession(options => {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.Name = "EpSession";
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.IdleTimeout = TimeSpan.FromMinutes(20);
+
+            });
+
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
@@ -57,6 +67,7 @@ namespace EPPaymentWebApp
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseSession();
             app.UseCookiePolicy();
 
 

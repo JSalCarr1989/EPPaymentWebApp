@@ -24,6 +24,7 @@ namespace EPPaymentWebApp.Models
         public int MpSaleId { get; set; }
         public string MpCardHolderName { get; set; }
         public string ResponsePaymentTypeDescription { get; set; }
+        public string ResponsePaymentHashStatusDescription { get; set; }
         public int RequestPaymentId { get; set; }
     }
 }

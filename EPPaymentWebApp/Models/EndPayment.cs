@@ -7,7 +7,7 @@ namespace EPPaymentWebApp.Models
 {
     public class EndPayment
     {
-        public string EndPaymentId { get; set; }
+        public int EndPaymentId { get; set; }
         public string CcLastFour { get; set; }
         public string Token { get; set; }
         public string ResponseCode { get; set; }

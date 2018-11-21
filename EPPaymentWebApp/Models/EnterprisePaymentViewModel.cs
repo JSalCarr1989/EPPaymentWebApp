@@ -48,5 +48,11 @@ namespace EPPaymentWebApp.Models
         public string Mp_urlsuccess { get; set; }
         public string Mp_urlfailure { get; set; }
         public string Mp_registersb { get; set; } 
+        public string BankResponse { get; set; } // concatenacion de response code y responseMessage
+        public string TransactionNumber { get; set; }
+        public string Token { get; set; } // token generado por multipagos.
+        public string CcLastFour { get; set; } 
+        public string IssuingBank { get; set; }
+        public string CcType { get; set; }
     }
 }
