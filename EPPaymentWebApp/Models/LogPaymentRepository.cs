@@ -53,10 +53,11 @@ namespace EPPaymentWebApp.Models
                 catch(Exception ex)
                 {
                     Console.WriteLine(ex.ToString());
+                    return result;
                 }
             }
 
-                throw new NotImplementedException();
+
         }
     }
 }

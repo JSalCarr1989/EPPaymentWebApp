@@ -33,14 +33,14 @@ namespace EPPaymentWebApp.Helpers
 
                 BillingAccount = beginPayment.BillingAccount, // mostrado
                 Currency = "Pesos", // mostrado
-                CreateToken = "SI", // mostrado
+                CreateToken = (beginPayment.CreateToken == "1") ? "SI" : "NO", // mostrado
                 BeginPaymentId = beginPayment.BeginPaymentId, // incluido en la vista como hiden
-                Mp_account = "1", //incluido en la vista como hidden
+                Mp_account = "7581", //incluido en la vista como hidden
                 Mp_product = "1", //incluido en la vista como hidden
                 Mp_order = beginPayment.ServiceRequest, // mostrado
                 Mp_reference = beginPayment.PaymentReference, // incluido en la vista como hidden, PaymentReference BeginPayment. 
-                Mp_node = "node", // incluido en la vista como hidden.
-                Mp_concept = "concept", // incluido en la vista como hidden
+                Mp_node = "0", // incluido en la vista como hidden.
+                Mp_concept = "1", // incluido en la vista como hidden
                 Mp_amount = "", // mostrado 
                 Mp_customername = "", // mostrado
                 Mp_signature = "", // incluido en la vista como hidden
