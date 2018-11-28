@@ -9,6 +9,7 @@ using EPPaymentWebApp.Interfaces;
 using EPPaymentWebApp.Helpers;
 using System.ServiceModel;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace EPPaymentWebApp.Controllers
 {
@@ -19,19 +20,21 @@ namespace EPPaymentWebApp.Controllers
         private readonly IResponsePaymentRepository _responsePaymentRepo;
         private readonly ILogPaymentRepository _logPaymentRepo;
         private readonly IEndPaymentRepository _endPaymentRepo;
+        private readonly IConfiguration _config;
         private readonly IResponseBankRequestTypeTibcoRepository _responseBankRequestTypeTybcoRepo;
         private BeginPayment _beginPayment = new BeginPayment();
         private EndPayment _endPayment = new EndPayment();
 
 
 
-        public HomeController(IBeginPaymentRepository beginPaymentRepo, IResponsePaymentRepository responsePaymentRepo, ILogPaymentRepository logPaymentRepo,IEndPaymentRepository endPaymentRepo, IResponseBankRequestTypeTibcoRepository responseBankRequestTypeTybcoRepo)
+        public HomeController(IConfiguration config, IBeginPaymentRepository beginPaymentRepo, IResponsePaymentRepository responsePaymentRepo, ILogPaymentRepository logPaymentRepo,IEndPaymentRepository endPaymentRepo, IResponseBankRequestTypeTibcoRepository responseBankRequestTypeTybcoRepo)
         {
             _beginPaymentRepo = beginPaymentRepo;
             _responsePaymentRepo = responsePaymentRepo;
             _logPaymentRepo = logPaymentRepo;
             _endPaymentRepo = endPaymentRepo;
             _responseBankRequestTypeTybcoRepo = responseBankRequestTypeTybcoRepo;
+            _config = config;
         }
 
 
@@ -51,7 +54,7 @@ namespace EPPaymentWebApp.Controllers
                     var viewModel = EnterprisePaymentHelpers.GenerateEnterprisePaymentViewModel(_beginPayment);
 
                     EnterprisePaymentHelpers.SetObjectAsJson(HttpContext.Session,"viewModelobject",viewModel);
-
+                    
                     return View(viewModel);
                 }
                 else
@@ -74,7 +77,7 @@ namespace EPPaymentWebApp.Controllers
 
             //0.- Validar hash que se recibió de multipagos.
           
-          var ValidHash =  EnterprisePaymentHelpers.ValidateMultipagosHash(multiPagosResponse);
+          var ValidHash =  EnterprisePaymentHelpers.ValidateMultipagosHash(multiPagosResponse,_config);
           
             //1.- obtener el id del requestpayment previo a la respuesta
             var logPayment = _logPaymentRepo.GetLastRequestPaymentId(

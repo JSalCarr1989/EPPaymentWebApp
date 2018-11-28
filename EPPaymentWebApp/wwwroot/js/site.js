@@ -8,35 +8,41 @@ $(function () {
     $("#requestPaymentForm").submit(function (e) {
 
 
-        var hash = CryptoJS.HmacSHA256($('#mp_order').val() + $('#mp_reference') + $('#mp_amount').val(), "secret");
-        var hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
-        
+       
+        $.ajax({
+            url: 'https://localhost:8443/api/Hash',
+            type: 'post',
+            dataType: 'json',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                    paymentOrder: $('#mp_order').val(),
+                    paymentReference: $('#mp_reference').val(),
+                    paymentAmount: $('#mp_amount').val()
+                }),
+            success: function (response) {
+                
+                $('input[name="mp_signature"]').val(response.hash);
 
+              var  requestData = {
+                    MpAccount: $('#mp_account').val(),
+                    MpProduct: $('#mp_product').val(),
+                    MpOrder: $('#mp_order').val(),
+                    MpReference: $('#mp_reference').val(),
+                    MpNode: $('#mp_node').val(),
+                    MpConcept: $('#mp_concept').val(),
+                    MpAmount: $('#mp_amount').val(),
+                    MpCustomerName: $('#mp_customername').val(),
+                    MpCurrency: $('#mp_currency').val(),
+                    MpSignature: response.hash,
+                    MpUrlSuccess: $('#mp_urlsuccess').val(),
+                    MpUrlFailure: $('#mp_urlfailure').val(),
+                    MpRegisterSb: $('#mp_registersb').val(),
+                    BeginPaymentId: $('#BeginPaymentId').val()
+                }
 
-        var requestData = {
-            MpAccount:$('#mp_account').val(),
-            MpProduct: $('#mp_product').val(),
-            MpOrder: $('#mp_order').val(),
-            MpReference: $('#mp_reference').val(),
-            MpNode: $('#mp_node').val(),
-            MpConcept: $('#mp_concept').val(),
-            MpAmount: $('#mp_amount').val(),
-            MpCustomerName: $('#mp_customername').val(),
-            MpCurrency: $('#mp_currency').val(),
-            MpSignature: hashInBase64,
-            MpUrlSuccess: $('#mp_urlsuccess').val(),
-            MpUrlFailure: $('#mp_urlfailure').val(),
-            MpRegisterSb: $('#mp_registersb').val(),
-            BeginPaymentId: $('#BeginPaymentId').val()
-        }
-
-
-        console.log(JSON.stringify(requestData));
-
-      
 
         $.ajax({
-            url: 'https://localhost:5001/api/RequestPayment',
+            url: 'https://localhost:8443/api/RequestPayment',
             type: 'post',
             dataType: 'json',
             contentType:'application/json',
@@ -49,12 +55,19 @@ $(function () {
 
             },
             success: function (response) {
-                console.log(response);
+                return true;
             }
         })
 
-        return false;
+            }
+        })
+
+
+        return true;
     })
 
+ 
 
 })
+
+

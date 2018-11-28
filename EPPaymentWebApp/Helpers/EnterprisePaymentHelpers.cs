@@ -7,6 +7,7 @@ using System.Text;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace EPPaymentWebApp.Helpers
 {
@@ -26,8 +27,11 @@ namespace EPPaymentWebApp.Helpers
 
         }
 
+       
+
         public static EnterprisePaymentViewModel GenerateEnterprisePaymentViewModel(BeginPayment beginPayment)
         {
+            
             var viewModel = new EnterprisePaymentViewModel
             {
 
@@ -35,7 +39,7 @@ namespace EPPaymentWebApp.Helpers
                 Currency = "Pesos", // mostrado
                 CreateToken = (beginPayment.CreateToken == "1") ? "SI" : "NO", // mostrado
                 BeginPaymentId = beginPayment.BeginPaymentId, // incluido en la vista como hiden
-                Mp_account = "7581", //incluido en la vista como hidden
+                Mp_account = "7581", //mp_account de preproduccion.
                 Mp_product = "1", //incluido en la vista como hidden
                 Mp_order = beginPayment.ServiceRequest, // mostrado
                 Mp_reference = beginPayment.PaymentReference, // incluido en la vista como hidden, PaymentReference BeginPayment. 
@@ -45,15 +49,15 @@ namespace EPPaymentWebApp.Helpers
                 Mp_customername = "", // mostrado
                 Mp_signature = "", // incluido en la vista como hidden
                 Mp_currency = "1", //Incluido en la vista como hidden 
-                Mp_urlsuccess = "asa", //Incluido en la vista como hidden 
-                Mp_urlfailure = "asa", //Incluido en la vista como hidden
+                Mp_urlsuccess = "https://207.248.229.227:443", //Incluido en la vista como hidden 
+                Mp_urlfailure = "https://207.248.229.227:443", //Incluido en la vista como hidden
                 Mp_registersb = beginPayment.CreateToken, //Incluido en la vista como hidden 
-                BankResponse = "123456",
-                TransactionNumber = "12345678910",
-                Token = "TOKEN",
-                CcLastFour = "1111",
-                IssuingBank = "BANCOMER",
-                CcType = "VISA"
+                BankResponse = string.Empty,
+                TransactionNumber = string.Empty,
+                Token = string.Empty,
+                CcLastFour = string.Empty,
+                IssuingBank = string.Empty,
+                CcType = string.Empty
             };
 
             return viewModel;
@@ -103,10 +107,10 @@ namespace EPPaymentWebApp.Helpers
             return _responsePaymentDTO;
         }
 
-        public static Boolean ValidateMultipagosHash(MultiPagosResponsePaymentDTO multipagosResponse)
+        public static Boolean ValidateMultipagosHash(MultiPagosResponsePaymentDTO multipagosResponse,IConfiguration config)
         {
             var rawData = multipagosResponse.mp_order + multipagosResponse.mp_reference + multipagosResponse.mp_amount + multipagosResponse.mp_authorization;
-            var myHash = ComputeSha256Hash(rawData,"secretkey");
+            var myHash = ComputeSha256Hash(rawData,config["MpSk"]);
 
             if(myHash == multipagosResponse.mp_signature)
             {
