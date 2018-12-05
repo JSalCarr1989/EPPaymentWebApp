@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using EPPaymentWebApp.Interfaces;
 using EPPaymentWebApp.Models;
 using Microsoft.AspNetCore.Builder;
@@ -30,6 +27,7 @@ namespace EPPaymentWebApp
             services.AddTransient<ILogPaymentRepository, LogPaymentRepository>();
             services.AddTransient<IEndPaymentRepository, EndPaymentRepository>();
             services.AddTransient<IResponseBankRequestTypeTibcoRepository, ResponseBankRequestTypeTibcoRepository>();
+            services.AddTransient<IEnterprisePaymentViewModelRepository, EnterprisePaymentViewModelRepository>();
 
             services.AddDistributedMemoryCache();
 
@@ -64,8 +62,9 @@ namespace EPPaymentWebApp
             {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
+                app.UseDeveloperExceptionPage();
             }
-
+            
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSession();

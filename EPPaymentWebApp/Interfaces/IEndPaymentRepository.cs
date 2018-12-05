@@ -8,7 +8,7 @@ namespace EPPaymentWebApp.Interfaces
 {
     public interface IEndPaymentRepository
     {
-        EndPayment GetEndPaymentByResponsePaymentId(int responsePaymentId);
+        EndPayment GetEndPaymentByServiceRequestAndPaymentReference(string serviceRequest,string paymentReference);
         Boolean ValidateEndPaymentSentStatus(int endPaymentId);
         int UpdateEndPaymentSentStatus(int endPaymentId,string endPaymentSentStatus);
     }

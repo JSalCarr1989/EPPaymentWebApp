@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using EPPaymentWebApp.Models;
 using EPPaymentWebApp.Interfaces;
 using EPPaymentWebApp.Helpers;
-using System.ServiceModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 namespace EPPaymentWebApp.Controllers
 {
@@ -24,6 +22,8 @@ namespace EPPaymentWebApp.Controllers
         private readonly IResponseBankRequestTypeTibcoRepository _responseBankRequestTypeTybcoRepo;
         private BeginPayment _beginPayment = new BeginPayment();
         private EndPayment _endPayment = new EndPayment();
+        private ResponsePayment _responsePayment = new ResponsePayment();
+        private readonly ILogger _logger;
 
 
 
@@ -35,6 +35,19 @@ namespace EPPaymentWebApp.Controllers
             _endPaymentRepo = endPaymentRepo;
             _responseBankRequestTypeTybcoRepo = responseBankRequestTypeTybcoRepo;
             _config = config;
+
+
+            var logger = new LoggerConfiguration()
+           .MinimumLevel.Debug()
+           .WriteTo.RollingFile(new CompactJsonFormatter(),
+                                 @"E:\LOG\EnterprisePaymentLog.json",
+                                 shared: true,
+                                 retainedFileCountLimit: 30
+                                 )
+          .CreateLogger();
+            _logger = logger;
+
+
         }
 
 
@@ -51,11 +64,12 @@ namespace EPPaymentWebApp.Controllers
 
                 if  (_beginPayment != null)
                 {
-                    var viewModel = EnterprisePaymentHelpers.GenerateEnterprisePaymentViewModel(_beginPayment);
+                    var viewModel = EnterprisePaymentHelpers.GenerateEnterprisePaymentViewModelRequestPayment(_beginPayment);
 
-                    EnterprisePaymentHelpers.SetObjectAsJson(HttpContext.Session,"viewModelobject",viewModel);
+                    //EnterprisePaymentHelpers.SetObjectAsJson(HttpContext.Session,"viewModelobject",viewModel);
                     
                     return View(viewModel);
+
                 }
                 else
                 {
@@ -97,9 +111,14 @@ namespace EPPaymentWebApp.Controllers
 
                 //3.- guardar el responsepayment en base de datos (endpayment se guarda a su vez con trigger)
                 int responsePaymentId = _responsePaymentRepo.CreateResponsePayment(responsePaymentDTO);
-                //4.- obtener el endpayment de base de datos
-                _endPayment = _endPaymentRepo.GetEndPaymentByResponsePaymentId(responsePaymentId);
 
+                _responsePayment = _responsePaymentRepo.GetResponsePaymentById(responsePaymentId);
+
+                
+                //4.- obtener el endpayment de base de datos 
+                _endPayment = _endPaymentRepo.GetEndPaymentByServiceRequestAndPaymentReference(_responsePayment.MpOrder, _responsePayment.MpReference);
+
+                //TO DO: VALIDAR POR OTROS CAMPOS QUE NO SEAN EL ENDPAYMENTID
                 //validar que el endpayment no tenga estatus de enviado, si tiene estatus de enviado no enviar.
                 if (_endPaymentRepo.ValidateEndPaymentSentStatus(_endPayment.EndPaymentId) != true)
                 {
@@ -107,6 +126,7 @@ namespace EPPaymentWebApp.Controllers
                     //Si la respuesta fue satisfactoria actualiza el estatus de endpayment en bd a enviado.
                     if(resultMessage == "OK")
                     {
+                        //TO DO: UPDATE POR OTROS CAMPOS QUE NO SEAN EL ENDPAYMENTID
                         var udpatedEndPaymentId = _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, "ENVIADO_TIBCO");
                     }
                 }
@@ -120,25 +140,50 @@ namespace EPPaymentWebApp.Controllers
                                          logPayment.RequestPaymentId,
                                          "HASH_INVALIDO");
 
+
                 //3.- guardar el responsepayment en base de datos (endpayment se guarda a su vez con trigger)
                 int responsePaymentId = _responsePaymentRepo.CreateResponsePayment(responsePaymentDTO);
+
+                _responsePayment = _responsePaymentRepo.GetResponsePaymentById(responsePaymentId);
                 //4.- obtener el endpayment de base de datos
-                _endPayment = _endPaymentRepo.GetEndPaymentByResponsePaymentId(responsePaymentId);
+                _endPayment = _endPaymentRepo.GetEndPaymentByServiceRequestAndPaymentReference(_responsePayment.MpOrder, _responsePayment.MpReference);
 
             }
 
+
+
+            _logger.Information(
+"Before Setting up object to the session:" +
+"Response Code: {ResponseCode}" +
+"Response Message: {ResponseMessage}",
+_endPayment.ResponseCode,
+_endPayment.ResponseMessage
+);
+            //TO DO: OBTENER TODOS LOS DATOS A MOSTRAR EN LA VISTA EN LA RESPUESTA DEL PAGO, SERA DESDE BASE DE DATOS , NO DESDE SESSION.
+
             //6.-Cargar los datos de la vista desde la  base de datos ( ¿obtenerlos de la sesion? )
-            var viewModelSessionObject = EnterprisePaymentHelpers.GetObjectFromJson<EnterprisePaymentViewModel>(HttpContext.Session, "viewModelobject");
+            //var viewModelSessionObject = EnterprisePaymentHelpers.GetObjectFromJson<EnterprisePaymentViewModel>(HttpContext.Session, "viewModelobject");
+            //cargamos los datos del inicio del pago.
+            //_beginPayment = _beginPaymentRepo.GetByServiceRequest(_endPayment.ServiceRequest);
+            //if (viewModelSessionObject != null)
+            //{
+            //    viewModelSessionObject.BankResponse = $"{_endPayment.ResponseCode} - {_endPayment.ResponseMessage}";
+            //    viewModelSessionObject.TransactionNumber = _endPayment.TransactionNumber;
+            //    viewModelSessionObject.Token = _endPayment.Token;
+            //    viewModelSessionObject.CcLastFour = _endPayment.CcLastFour;
+            //    viewModelSessionObject.IssuingBank = _endPayment.IssuingBank;
+            //    viewModelSessionObject.CcType = _endPayment.CcType;
 
-            viewModelSessionObject.BankResponse = $"{_endPayment.ResponseCode} - {_endPayment.ResponseMessage}";
-            viewModelSessionObject.TransactionNumber = _endPayment.TransactionNumber;
-            viewModelSessionObject.Token = _endPayment.Token;
-            viewModelSessionObject.CcLastFour = _endPayment.CcLastFour;
-            viewModelSessionObject.IssuingBank = _endPayment.IssuingBank;
-            viewModelSessionObject.CcType = _endPayment.CcType;
+            //    //7.-enviar los datos a la vista.
+            //    return View(viewModelSessionObject);
+            //}else
+            //{
+            //    return Content("No hay sesion compa!");
+            //}
 
-            //7.-enviar los datos a la vista.
-            return View(viewModelSessionObject);
+            return Content("no hay nada aun");
+
+            
 
         }
 

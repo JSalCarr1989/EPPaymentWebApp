@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace EPPaymentWebApp.Models
 {
-    public class ResponsePaymentDTO
+    public class ResponsePayment
     {
         public int ResponsePaymentId { get; set; }
         public string MpOrder { get; set; }
@@ -23,8 +20,8 @@ namespace EPPaymentWebApp.Models
         public string MpSbToken { get; set; }
         public int MpSaleId { get; set; }
         public string MpCardHolderName { get; set; }
-        public string ResponsePaymentTypeDescription { get; set; }
-        public string ResponsePaymentHashStatusDescription { get; set; }
+        public int ResponsePaymentTypeListId { get; set; }
+        public int ResponsePaymentHashStatusId { get; set; }
         public int PaymentRequestId { get; set; }
     }
 }

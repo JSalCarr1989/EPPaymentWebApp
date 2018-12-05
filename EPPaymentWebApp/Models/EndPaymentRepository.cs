@@ -1,38 +1,75 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
 using EPPaymentWebApp.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Dapper;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 namespace EPPaymentWebApp.Models
 {
     public class EndPaymentRepository : IEndPaymentRepository
     {
         private readonly IConfiguration _config;
+        private readonly string _connectionString;
+        private readonly ILogger _logger;
 
         public EndPaymentRepository(IConfiguration config)
         {
             _config = config;
+
+            var environmentConnectionString = Environment.GetEnvironmentVariable("EpPaymentDevConnectionStringEnvironment", EnvironmentVariableTarget.Machine);
+
+            var connectionString = !string.IsNullOrEmpty(environmentConnectionString)
+                       ? environmentConnectionString
+                       : _config.GetConnectionString("EpPaymentDevConnectionString");
+
+            _connectionString = connectionString;
+
+            var logger = new LoggerConfiguration()
+           .MinimumLevel.Debug()
+           .WriteTo.RollingFile(new CompactJsonFormatter(),
+                                 @"E:\LOG\EnterprisePaymentLog.json",
+                                 shared: true,
+                                 retainedFileCountLimit: 30
+                                 )
+          .CreateLogger();
+            _logger = logger;
         }
 
         public IDbConnection Connection
         {
             get
             {
-                return new SqlConnection(_config.GetConnectionString("EpPaymentDevConnectionString"));
+                return new SqlConnection(_connectionString);
             }
         }
 
-        public EndPayment GetEndPaymentByResponsePaymentId(int responsePaymentId)
+        public EndPayment GetEndPaymentByServiceRequestAndPaymentReference(string serviceRequest, string paymentReference)
         {
             using (IDbConnection conn = Connection)
             {
                 conn.Open();
-                var result = conn.QueryFirstOrDefault<EndPayment>("SP_EP_GET_ENDPAYMENT_BY_RESPONSEPAYMENT_ID", new { RESPONSEPAYMENT_ID = responsePaymentId },commandType: CommandType.StoredProcedure);
+
+                _logger.Information(
+"Before Search EndPayment:" +
+"service request: {serviceRequest}"+
+"payment reference: {paymentReference}",
+serviceRequest,
+paymentReference
+);
+
+                var result = conn.QueryFirst<EndPayment>("SP_EP_GET_ENDPAYMENT_BY_SR_PR", new { SERVICE_REQUEST = serviceRequest, PAYMENT_REFERENCE=paymentReference },commandType: CommandType.StoredProcedure);
+
+                _logger.Information(
+"Results of search EndPayment:" +
+"Response Code: {ResponseCode}"+
+"Response Message: {ResponseMessage}",
+result.ResponseCode,
+result.ResponseMessage
+);
+
                 return result;
             }
         }

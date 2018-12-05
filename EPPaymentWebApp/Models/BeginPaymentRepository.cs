@@ -14,17 +14,31 @@ namespace EPPaymentWebApp.Models
     {
 
         private readonly IConfiguration _config;
+        private readonly string _connectionString;
 
         public BeginPaymentRepository(IConfiguration config)
         {
             _config = config;
+
+            var environmentConnectionString = Environment.GetEnvironmentVariable("EpPaymentDevConnectionStringEnvironment", EnvironmentVariableTarget.Machine);
+
+            var connectionString = !string.IsNullOrEmpty(environmentConnectionString)
+                                   ? environmentConnectionString
+                                   : _config.GetConnectionString("EpPaymentDevConnectionString");
+
+            _connectionString = connectionString;
         }
+
+        
 
         public IDbConnection Connection
         {
+           
+
             get
             {
-                return new SqlConnection(_config.GetConnectionString("EpPaymentDevConnectionString"));
+                return new SqlConnection(_connectionString);
+                //return new SqlConnection("server=100.125.0.119; Database=EnterprisePaymentWebDB; Integrated Security = false; Password =U_d3s_4dm1_#00; User Id = co_jcarrillog;");
             }
         }
 

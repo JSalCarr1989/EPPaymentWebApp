@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
 using EPPaymentWebApp.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Dapper;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 namespace EPPaymentWebApp.Models
 {
@@ -14,10 +13,30 @@ namespace EPPaymentWebApp.Models
     {
 
         private IConfiguration _config;
+        private readonly string _connectionString;
+        private readonly ILogger _logger;
 
         public LogPaymentRepository(IConfiguration config)
         {
             _config = config;
+
+            var environmentConnectionString = Environment.GetEnvironmentVariable("EpPaymentDevConnectionStringEnvironment", EnvironmentVariableTarget.Machine);
+
+            var connectionString = !string.IsNullOrEmpty(environmentConnectionString)
+                       ? environmentConnectionString
+                       : _config.GetConnectionString("EpPaymentDevConnectionString");
+
+            _connectionString = connectionString;
+
+            var logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.RollingFile(new CompactJsonFormatter(),
+                                  @"E:\LOG\EnterprisePaymentLog.json",
+                                  shared: true,
+                                  retainedFileCountLimit: 30
+                                  )
+           .CreateLogger();
+            _logger = logger;
 
         }
 
@@ -25,7 +44,7 @@ namespace EPPaymentWebApp.Models
         {
             get
             {
-                return new SqlConnection(_config.GetConnectionString("EpPaymentDevConnectionString"));
+                return new SqlConnection(_connectionString);
             }
         }
 
@@ -44,9 +63,28 @@ namespace EPPaymentWebApp.Models
                     parameters.Add("@PAYMENT_REFERENCE", paymentReference);
                     parameters.Add("@STATUS_PAYMENT", StatusPayment);
 
+                    _logger.Information(
+        "Before Search Request Payment Id with the following data:" + 
+        "amount: {amount}" +
+        "service request: {serviceRequest}"+
+        "payment reference: {paymentReference}" +
+        "status payment: {StatusPayment}",
+        amount,
+        serviceRequest,
+        paymentReference,
+        StatusPayment
+      );
+
                     conn.Open();
 
-                    result = conn.QueryFirstOrDefault("GET_LAST_REQUESTPAYMENT_ID",parameters, commandType: CommandType.StoredProcedure);
+                    result = conn.QueryFirst<LogPayment>("GET_LAST_REQUESTPAYMENT_ID",parameters, commandType: CommandType.StoredProcedure);
+
+
+                    _logger.Information(
+"Results of search requestppaymentid:" +
+"request payment id: {RequestPaymentId}",
+ result.RequestPaymentId
+);
 
                     return result;
                 }

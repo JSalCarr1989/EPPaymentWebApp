@@ -5,17 +5,17 @@
         <form id="requestPaymentForm" action="https://prepro.adquiracloud.mx/clb/endpoint/axtel/" method="post">
             <div class="form-group">
                 <label for="Mp_order">Service Request</label>
-                <input type="text" name="mp_order" id="mp_order" value=@Model.Mp_order class="form-control" disabled />
+                <input type="text" name="mp_order" id="mp_order" value=@Model.Mp_order class="form-control" readonly />
                 <label for="BillingAccount">Cta. Facturación</label>
-                <input type="text" id="BillingAccount" value=@Model.BillingAccount class="form-control" disabled />
+                <input type="text" id="BillingAccount" value=@Model.BillingAccount class="form-control" readonly />
                 <label for="Mp_amount">Monto a Pagar</label>
-                <input type="text" name="mp_amount" id="mp_amount" class="form-control" placeholder="Monto a Pagar" />
+                <input type="number" name="mp_amount" id="mp_amount" value="0.00" class="form-control" placeholder="Monto a Pagar" />
                 <label for="Currency">Divisa</label>
-                <input type="text" id="Currency" value=@Model.Currency class="form-control" disabled />
+                <input type="text" id="Currency" value=@Model.Currency class="form-control" readonly />
                 <label for="Mp_customername">Nombre Pagador</label>
                 <input type="text" name="mp_customername" id="mp_customername" class="form-control" placeholder="Nombre Pagador" />
                 <label for="CreateToken">¿Solicito Token?</label>
-                <input type="text" id="CreateToken" value=@Model.CreateToken class="form-control" disabled />
+                <input type="text" id="CreateToken" value=@Model.CreateToken class="form-control" readonly />
                 <input type="hidden" id="BeginPaymentId" value=@Model.BeginPaymentId class="form-control" />
                 <input type="hidden" name="mp_account" id="mp_account" value=@Model.Mp_account class="form-control" />
                 <input type="hidden" name="mp_product" id="mp_product" value=@Model.Mp_product class="form-control" />
