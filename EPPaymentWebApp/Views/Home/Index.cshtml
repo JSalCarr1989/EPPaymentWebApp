@@ -37,74 +37,18 @@
     <div class="col-md-6">
              <form id="responsePaymenForm" action="" method="post">
                  <div class="form-group">
-
                      <label for="BankResponse">Respuesta del Banco</label>
-
-                     @if (string.IsNullOrEmpty(Model.BankResponse))
-                     {
-                         <input type="text" name="BankResponse" id="BankResponse" class="form-control" disabled />
-                     }
-                     else
-                     {
-                         <input type="text" name="BankResponse" id="BankResponse" value=@Model.BankResponse class="form-control" disabled />
-                     }
-
+                     <input type="text" name="BankResponse" id="BankResponse" class="form-control" disabled />
                      <label for="TransactionNumber">Número de Aprobación</label>
-
-                     @if (string.IsNullOrEmpty(Model.TransactionNumber))
-                     {
-                         <input type="text" name="TransactionNumber" id="TransactionNumber" class="form-control" disabled />
-                     }
-                     else
-                     {
-                         <input type="text" name="TransactionNumber" id="TransactionNumber" value=@Model.TransactionNumber class="form-control" disabled />
-                     }
-
+                     <input type="text" name="TransactionNumber" id="TransactionNumber" class="form-control" disabled />
                      <label for="Token">Token</label>
-
-                     @if (string.IsNullOrEmpty(Model.Token))
-                     {
-                         <input type="text" name="Token" id="Token" class="form-control" disabled />
-                     }
-                     else
-                     {
-                         <input type="text" name="Token" id="Token" value=@Model.Token class="form-control" disabled />
-                     }
-
+                     <input type="text" name="Token" id="Token" class="form-control" disabled />
                      <label for="CcLastFour">Terminación de la tarjeta</label>
-
-                     @if (string.IsNullOrEmpty(Model.CcLastFour))
-                     {
-                         <input type="text" name="CcLastFour" id="CcLastFour" class="form-control" disabled />
-                     }
-                     else
-                     {
-                         <input type="text" name="CcLastFour" id="CcLastFour" value=@Model.CcLastFour class="form-control" disabled />
-                     }
-
+                     <input type="text" name="CcLastFour" id="CcLastFour" class="form-control" disabled />
                      <label for="IssuingBank">Banco Emisor</label>
-
-                     @if (string.IsNullOrEmpty(Model.IssuingBank))
-                     {
-                         <input type="text" name="IssuingBank" id="IssuingBank" class="form-control" disabled />
-                     }
-                     else
-                     {
-                         <input type="text" name="IssuingBank" id="IssuingBank" value=@Model.IssuingBank class="form-control" disabled />
-                     }
-
+                     <input type="text" name="IssuingBank" id="IssuingBank" class="form-control" disabled />
                      <label for="CcType">Tipo de Tarjeta</label>
-
-                     @if (string.IsNullOrEmpty(Model.CcType))
-                     {
-                         <input type="text" name="CcType" id="CcType" class="form-control" disabled />
-                     }
-                     else
-                     {
-                         <input type="text" name="CcType" id="CcType" value=@Model.CcType class="form-control" disabled />
-                     }
-
-                     
+                     <input type="text" name="CcType" id="CcType" class="form-control" disabled />
                  </div>
              </form>
     </div>
