@@ -46,7 +46,7 @@ namespace EPPaymentWebApp.Models
             }
         }
 
-        public EndPayment GetEndPaymentByServiceRequestAndPaymentReference(string serviceRequest, string paymentReference)
+        public EndPayment GetEndPaymentByResponsePaymentId(int responsePaymentId)
         {
             using (IDbConnection conn = Connection)
             {
@@ -54,13 +54,12 @@ namespace EPPaymentWebApp.Models
 
                 _logger.Information(
 "Before Search EndPayment:" +
-"service request: {serviceRequest}"+
-"payment reference: {paymentReference}",
-serviceRequest,
-paymentReference
+"responsePaymentId: {responsePaymentId}",
+responsePaymentId
+
 );
 
-                var result = conn.QueryFirst<EndPayment>("SP_EP_GET_ENDPAYMENT_BY_SR_PR", new { SERVICE_REQUEST = serviceRequest, PAYMENT_REFERENCE=paymentReference },commandType: CommandType.StoredProcedure);
+                var result = conn.QueryFirst<EndPayment>("SP_EP_GET_ENDPAYMENT_BY_RESPONSEPAYMENT_ID", new { RESPONSEPAYMENT_ID = responsePaymentId},commandType: CommandType.StoredProcedure);
 
                 _logger.Information(
 "Results of search EndPayment:" +

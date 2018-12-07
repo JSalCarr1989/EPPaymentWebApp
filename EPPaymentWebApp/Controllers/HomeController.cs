@@ -23,10 +23,11 @@ namespace EPPaymentWebApp.Controllers
         private readonly IResponseBankRequestTypeTibcoRepository _responseBankRequestTypeTybcoRepo;
         private readonly IEnterprisePaymentViewModelRepository _enterprisePaymentViewModelRepository;
         private readonly ILogger _logger;
+        private readonly ISentToTibcoRepository _sentToTibcoRepo;
 
 
 
-        public HomeController(IConfiguration config, IBeginPaymentRepository beginPaymentRepo, IResponsePaymentRepository responsePaymentRepo, ILogPaymentRepository logPaymentRepo,IEndPaymentRepository endPaymentRepo, IResponseBankRequestTypeTibcoRepository responseBankRequestTypeTybcoRepo, IEnterprisePaymentViewModelRepository enterprisePaymentViewModelRepository)
+        public HomeController(IConfiguration config, IBeginPaymentRepository beginPaymentRepo, IResponsePaymentRepository responsePaymentRepo, ILogPaymentRepository logPaymentRepo,IEndPaymentRepository endPaymentRepo, IResponseBankRequestTypeTibcoRepository responseBankRequestTypeTybcoRepo, IEnterprisePaymentViewModelRepository enterprisePaymentViewModelRepository, ISentToTibcoRepository sentToTibcoRepo)
         {
             _beginPaymentRepo = beginPaymentRepo;
             _responsePaymentRepo = responsePaymentRepo;
@@ -35,7 +36,7 @@ namespace EPPaymentWebApp.Controllers
             _responseBankRequestTypeTybcoRepo = responseBankRequestTypeTybcoRepo;
             _config = config;
             _enterprisePaymentViewModelRepository = enterprisePaymentViewModelRepository;
-
+            _sentToTibcoRepo = sentToTibcoRepo;
 
             var logger = new LoggerConfiguration()
            .MinimumLevel.Debug()
@@ -93,82 +94,48 @@ namespace EPPaymentWebApp.Controllers
 
             EndPayment _endPayment = new EndPayment();
             ResponsePayment _responsePayment = new ResponsePayment();
-            //0.- Validar hash que se recibió de multipagos.
+            
 
-            _logger.Information(
-"Before validate hash",
-multiPagosResponse.mp_signature
-);
-
-
+            //1.- Validamos el hash
             var ValidHash =  EnterprisePaymentHelpers.ValidateMultipagosHash(multiPagosResponse,_config,_logger);
-          
-            //1.- obtener el id del requestpayment previo a la respuesta
+
+            var hashStatus = (ValidHash) ? "HASH_VALIDO" : "HASH_INVALIDO";
+
+            //2.- Obtenemos el requestpaymentid que previo a la respuesta.
             var logPayment = _logPaymentRepo.GetLastRequestPaymentId(
                 multiPagosResponse.mp_amount,
                 multiPagosResponse.mp_order,
                 multiPagosResponse.mp_reference,
                 "REQUEST_PAYMENT");
 
-            //si el hash es valido
-            if (ValidHash)
-            {
-                //2.- mapear campos a insertar
-                var responsePaymentDTO = EnterprisePaymentHelpers.GenerateResponsePaymentDTO(
+            //3.- mapear campos a insertar
+            var responsePaymentDTO = EnterprisePaymentHelpers.GenerateResponsePaymentDTO(
                     multiPagosResponse,
                     logPayment.RequestPaymentId,
-                    "HASH_VALIDO");
+                    hashStatus);
 
-                //3.- guardar el responsepayment en base de datos (endpayment se guarda a su vez con trigger)
-                int responsePaymentId = _responsePaymentRepo.CreateResponsePayment(responsePaymentDTO);
+                //TODO: SI EL HASH NO ES VALIDO se debe crear un endpayment con el resultado negativo. (movimiento en trigger)
+            //4.- guardar el responsepayment en base de datos (endpayment se guarda a su vez con trigger)
+            int responsePaymentId = _responsePaymentRepo.CreateResponsePayment(responsePaymentDTO);
 
-                _responsePayment = _responsePaymentRepo.GetResponsePaymentById(responsePaymentId);
+            //5.- TODO: consultar si server2server ya envio.
 
-                
-                //4.- obtener el endpayment de base de datos 
-                _endPayment = _endPaymentRepo.GetEndPaymentByServiceRequestAndPaymentReference(_responsePayment.MpOrder, _responsePayment.MpReference);
+            var sentExists =_sentToTibcoRepo.GetEndPaymentSentToTibco("ENVIADO_TIBCO", "MULTIPAGOS_SERVER2SERVER", responsePaymentId);
 
-                //TO DO: VALIDAR POR OTROS CAMPOS QUE NO SEAN EL ENDPAYMENTID
-                //validar que el endpayment no tenga estatus de enviado, si tiene estatus de enviado no enviar.
-                if (_endPaymentRepo.ValidateEndPaymentSentStatus(_endPayment.EndPaymentId) != true)
+            _endPayment = _endPaymentRepo.GetEndPaymentByResponsePaymentId(responsePaymentId);
+
+            //TODO: si server2server ya envio ya no enviamos (if)
+            if (!sentExists)
+            { 
+                string resultMessage = await _responseBankRequestTypeTybcoRepo.SendEndPaymentToTibco(_endPayment);
+                //Si la respuesta fue satisfactoria actualiza el estatus de endpayment en bd a enviado.
+                if (resultMessage == "OK")
                 {
-                    string resultMessage = await _responseBankRequestTypeTybcoRepo.SendEndPaymentToTibco(_endPayment);
-                    //Si la respuesta fue satisfactoria actualiza el estatus de endpayment en bd a enviado.
-                    if(resultMessage == "OK")
-                    {
-                        //TO DO: UPDATE POR OTROS CAMPOS QUE NO SEAN EL ENDPAYMENTID
-                        var udpatedEndPaymentId = _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, "ENVIADO_TIBCO");
-                    }
+                    //TO DO: UPDATE POR OTROS CAMPOS QUE NO SEAN EL ENDPAYMENTID
+                    var udpatedEndPaymentId = _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, "ENVIADO_TIBCO");
                 }
 
-
             }
-            else // si el hash no es valido.
-            {
-                var responsePaymentDTO = EnterprisePaymentHelpers.GenerateResponsePaymentDTO(
-                                         multiPagosResponse,
-                                         logPayment.RequestPaymentId,
-                                         "HASH_INVALIDO");
-
-
-                //3.- guardar el responsepayment en base de datos (endpayment se guarda a su vez con trigger)
-                int responsePaymentId = _responsePaymentRepo.CreateResponsePayment(responsePaymentDTO);
-
-                _responsePayment = _responsePaymentRepo.GetResponsePaymentById(responsePaymentId);
-                //4.- obtener el endpayment de base de datos
-                _endPayment = _endPaymentRepo.GetEndPaymentByServiceRequestAndPaymentReference(_responsePayment.MpOrder, _responsePayment.MpReference);
-
-            }
-
-
-
-            _logger.Information(
-"Before Setting up object to the session:" +
-"Response Code: {ResponseCode}" +
-"Response Message: {ResponseMessage}",
-_endPayment.ResponseCode,
-_endPayment.ResponseMessage
-);
 
 
             var enterprisePaymentViewModel = _enterprisePaymentViewModelRepository.GetEnterprisePaymentViewModel(_endPayment.ServiceRequest, _endPayment.PaymentReference);
