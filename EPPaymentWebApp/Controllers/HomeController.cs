@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Formatting.Compact;
 using System.IO;
+using System;
 
 namespace EPPaymentWebApp.Controllers
 {
@@ -39,7 +40,7 @@ namespace EPPaymentWebApp.Controllers
             _sentToTibcoRepo = sentToTibcoRepo;
 
             var logger = new LoggerConfiguration()
-           .MinimumLevel.Debug()
+           .MinimumLevel.Information()
            .WriteTo.RollingFile(new CompactJsonFormatter(),
                                  //@"E:\LOG\EnterprisePaymentLog.json",
                                  Path.Combine(@"E:\LOG\", @"EnterprisePaymentLog.json"),
@@ -68,9 +69,6 @@ namespace EPPaymentWebApp.Controllers
                 if  (_beginPayment != null)
                 {
                     var viewModel = EnterprisePaymentHelpers.GenerateEnterprisePaymentViewModelRequestPayment(_beginPayment);
-
-                    //EnterprisePaymentHelpers.SetObjectAsJson(HttpContext.Session,"viewModelobject",viewModel);
-                    
                     return View(viewModel);
 
                 }
@@ -125,14 +123,22 @@ namespace EPPaymentWebApp.Controllers
             _endPayment = _endPaymentRepo.GetEndPaymentByResponsePaymentId(responsePaymentId);
 
             //TODO: si server2server ya envio ya no enviamos (if)
-            if (!sentExists)
+            if (sentExists != true)
             { 
                 string resultMessage = await _responseBankRequestTypeTybcoRepo.SendEndPaymentToTibco(_endPayment);
                 //Si la respuesta fue satisfactoria actualiza el estatus de endpayment en bd a enviado.
                 if (resultMessage == "OK")
                 {
+                    _logger.Information(
+"result message: {resultMessage}",
+resultMessage);
                     //TO DO: UPDATE POR OTROS CAMPOS QUE NO SEAN EL ENDPAYMENTID
                     var udpatedEndPaymentId = _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, "ENVIADO_TIBCO");
+                }else
+                {
+                    _logger.Information(
+"result message: {resultMessage}",
+resultMessage);
                 }
 
             }
@@ -145,6 +151,7 @@ namespace EPPaymentWebApp.Controllers
             
 
         }
+
 
 
 

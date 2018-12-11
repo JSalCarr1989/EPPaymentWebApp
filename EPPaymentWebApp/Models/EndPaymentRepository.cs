@@ -88,9 +88,9 @@ result.ResponseMessage
 
                 conn.Open();
 
-                var result = conn.QueryFirstOrDefault<int>("UPDATE_ENDPAYMENT_SENT_STATUS",parameters,commandType: CommandType.StoredProcedure);
+                conn.Query("UPDATE_ENDPAYMENT_SENT_STATUS",parameters,commandType: CommandType.StoredProcedure);
 
-                return result;
+                return parameters.Get<int>("UPDATED_ENDPAYMENT_ID");
             }
         }
 
