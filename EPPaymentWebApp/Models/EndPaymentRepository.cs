@@ -73,7 +73,7 @@ result.ResponseMessage
             }
         }
 
-        public int UpdateEndPaymentSentStatus(int endPaymentId,string endPaymentSentStatus)
+        public void UpdateEndPaymentSentStatus(int endPaymentId,string endPaymentSentStatus)
         {
             using (IDbConnection conn = Connection)
             {
@@ -82,15 +82,12 @@ result.ResponseMessage
 
                parameters.Add("@ENDPAYMENT_ID", endPaymentId);
                parameters.Add("@ENDPAYMENT_SENT_STATUS", endPaymentSentStatus);
-               parameters.Add("@UPDATED_ENDPAYMENT_ID", 
-                   dbType: DbType.Int32, 
-                   direction: ParameterDirection.Output);
 
                 conn.Open();
 
                 conn.Query("UPDATE_ENDPAYMENT_SENT_STATUS",parameters,commandType: CommandType.StoredProcedure);
 
-                return parameters.Get<int>("UPDATED_ENDPAYMENT_ID");
+                
             }
         }
 

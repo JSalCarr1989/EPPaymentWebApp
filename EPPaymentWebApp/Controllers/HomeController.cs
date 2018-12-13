@@ -7,8 +7,6 @@ using EPPaymentWebApp.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Serilog;
-using Serilog.Formatting.Compact;
-using System.IO;
 using System;
 
 namespace EPPaymentWebApp.Controllers
@@ -39,15 +37,26 @@ namespace EPPaymentWebApp.Controllers
             _enterprisePaymentViewModelRepository = enterprisePaymentViewModelRepository;
             _sentToTibcoRepo = sentToTibcoRepo;
 
+            //  var logger = new LoggerConfiguration()
+            // .MinimumLevel.Information()
+            // .WriteTo.RollingFile(new CompactJsonFormatter(),
+            //                       Path.Combine(@"E:\LOG\", @"EnterprisePaymentLog.json"),
+            //                       shared: true,
+            //                       retainedFileCountLimit: 30
+            //                       )
+            //.CreateLogger();
+            var environmentConnectionString = Environment.GetEnvironmentVariable("EpPaymentDevConnectionStringEnvironment", EnvironmentVariableTarget.Machine);
+
+            var connectionString = !string.IsNullOrEmpty(environmentConnectionString)
+                       ? environmentConnectionString
+                       : _config.GetConnectionString("EpPaymentDevConnectionString");
+
             var logger = new LoggerConfiguration()
-           .MinimumLevel.Information()
-           .WriteTo.RollingFile(new CompactJsonFormatter(),
-                                 //@"E:\LOG\EnterprisePaymentLog.json",
-                                 Path.Combine(@"E:\LOG\", @"EnterprisePaymentLog.json"),
-                                 shared: true,
-                                 retainedFileCountLimit: 30
-                                 )
-          .CreateLogger();
+.MinimumLevel.Information()
+.WriteTo.MSSqlServer(connectionString, "Log")
+.CreateLogger();
+
+
             _logger = logger;
 
 
@@ -92,59 +101,88 @@ namespace EPPaymentWebApp.Controllers
 
             EndPayment _endPayment = new EndPayment();
             ResponsePayment _responsePayment = new ResponsePayment();
-            
 
-            //1.- Validamos el hash
-            var ValidHash =  EnterprisePaymentHelpers.ValidateMultipagosHash(multiPagosResponse,_config,_logger);
+            EnterprisePaymentDbLogHelpers.LogResponsedDataToDb(
+                _logger, 
+                multiPagosResponse);
+           
+            
+            var ValidHash =  EnterprisePaymentHelpers.ValidateMultipagosHash(
+                multiPagosResponse,
+                _config,
+                _logger);
 
             var hashStatus = (ValidHash) ? "HASH_VALIDO" : "HASH_INVALIDO";
 
-            //2.- Obtenemos el requestpaymentid que previo a la respuesta.
+            
             var logPayment = _logPaymentRepo.GetLastRequestPaymentId(
                 multiPagosResponse.mp_amount,
                 multiPagosResponse.mp_order,
                 multiPagosResponse.mp_reference,
                 "REQUEST_PAYMENT");
 
-            //3.- mapear campos a insertar
+            EnterprisePaymentDbLogHelpers.LogGetLastRequestPaymentId(
+                _logger, 
+                multiPagosResponse, 
+                "REQUEST_PAYMENT", 
+                logPayment.RequestPaymentId
+                );
+
+            
             var responsePaymentDTO = EnterprisePaymentHelpers.GenerateResponsePaymentDTO(
                     multiPagosResponse,
                     logPayment.RequestPaymentId,
                     hashStatus);
 
-                //TODO: SI EL HASH NO ES VALIDO se debe crear un endpayment con el resultado negativo. (movimiento en trigger)
-            //4.- guardar el responsepayment en base de datos (endpayment se guarda a su vez con trigger)
             int responsePaymentId = _responsePaymentRepo.CreateResponsePayment(responsePaymentDTO);
 
-            //5.- TODO: consultar si server2server ya envio.
+            EnterprisePaymentDbLogHelpers.LogCreateResponsePayment(
+                _logger, 
+                responsePaymentDTO, 
+                responsePaymentId
+                );
 
-            var sentExists =_sentToTibcoRepo.GetEndPaymentSentToTibco("ENVIADO_TIBCO", "MULTIPAGOS_SERVER2SERVER", responsePaymentId);
+            var sentExists =_sentToTibcoRepo.GetEndPaymentSentToTibco(
+                "ENVIADO_TIBCO", 
+                "MULTIPAGOS_SERVER2SERVER", 
+                responsePaymentId
+                );
+
+            EnterprisePaymentDbLogHelpers.LogGetSentExists(
+                _logger,
+                "ENVIADO_TIBCO", 
+                "MULTIPAGOS_SERVER2SERVER",
+                responsePaymentId,
+                sentExists
+                );
 
             _endPayment = _endPaymentRepo.GetEndPaymentByResponsePaymentId(responsePaymentId);
 
-            //TODO: si server2server ya envio ya no enviamos (if)
+            EnterprisePaymentDbLogHelpers.LogGetEndPayment(
+                _logger, 
+                responsePaymentId, 
+                _endPayment
+                );
+            
             if (sentExists != true)
             { 
-                string resultMessage = await _responseBankRequestTypeTybcoRepo.SendEndPaymentToTibco(_endPayment);
-                //Si la respuesta fue satisfactoria actualiza el estatus de endpayment en bd a enviado.
+                string resultMessage = await _responseBankRequestTypeTybcoRepo.SendEndPaymentToTibco(_endPayment,_logger);
+                
                 if (resultMessage == "OK")
                 {
-                    _logger.Information(
-"result message: {resultMessage}",
-resultMessage);
-                    //TO DO: UPDATE POR OTROS CAMPOS QUE NO SEAN EL ENDPAYMENTID
-                    var udpatedEndPaymentId = _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, "ENVIADO_TIBCO");
-                }else
-                {
-                    _logger.Information(
-"result message: {resultMessage}",
-resultMessage);
+                     _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, "ENVIADO_TIBCO");
+                    EnterprisePaymentDbLogHelpers.LogUpdateEndPaymentSentStatus(
+                        _logger, 
+                        _endPayment.EndPaymentId, 
+                        "ENVIADO_TIBCO"
+                        );
                 }
 
             }
 
-
             var enterprisePaymentViewModel = _enterprisePaymentViewModelRepository.GetEnterprisePaymentViewModel(_endPayment.ServiceRequest, _endPayment.PaymentReference);
+
+            EnterprisePaymentDbLogHelpers.LogShowedDataInView(_logger, enterprisePaymentViewModel);
 
             return View(enterprisePaymentViewModel);
 

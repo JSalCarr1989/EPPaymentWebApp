@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using EPPaymentWebApp.Models;
+using Serilog;
 
 namespace EPPaymentWebApp.Interfaces
 {
    public  interface IResponseBankRequestTypeTibcoRepository
     {
-       Task<string> SendEndPaymentToTibco(EndPayment endPayment);
+       Task<string> SendEndPaymentToTibco(EndPayment endPayment, ILogger log);
     }
 }

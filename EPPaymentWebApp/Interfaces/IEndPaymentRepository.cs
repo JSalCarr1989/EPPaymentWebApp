@@ -10,6 +10,6 @@ namespace EPPaymentWebApp.Interfaces
     {
         EndPayment GetEndPaymentByResponsePaymentId(int responsePaymentId);
         Boolean ValidateEndPaymentSentStatus(int endPaymentId);
-        int UpdateEndPaymentSentStatus(int endPaymentId,string endPaymentSentStatus);
+        void UpdateEndPaymentSentStatus(int endPaymentId,string endPaymentSentStatus);
     }
 }
