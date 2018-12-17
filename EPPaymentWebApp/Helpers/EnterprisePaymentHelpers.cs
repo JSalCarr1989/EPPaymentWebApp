@@ -3,6 +3,7 @@ using EPPaymentWebApp.Models;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Configuration;
 using Serilog;
+using EPPaymentWebApp.Interfaces;
 
 namespace EPPaymentWebApp.Helpers
 {
@@ -98,7 +99,7 @@ namespace EPPaymentWebApp.Helpers
             return _responsePaymentDTO;
         }
 
-        public static Boolean ValidateMultipagosHash(MultiPagosResponsePaymentDTO multipagosResponse,IConfiguration config,ILogger logger)
+        public static Boolean ValidateMultipagosHash(MultiPagosResponsePaymentDTO multipagosResponse,IConfiguration config,IDbLoggerRepository loggerRepo)
         {
             bool result;
             
@@ -114,7 +115,9 @@ namespace EPPaymentWebApp.Helpers
 
             result = (generatedHash == multipagosResponse.mp_signature) ? true : false;
 
-            EnterprisePaymentDbLogHelpers.LogHashValidationToDb(logger,multipagosResponse, rawData,generatedHash, (generatedHash == multipagosResponse.mp_signature) ? "HASH_VALIDO" : "HASH_INVALIDO");
+            //EnterprisePaymentDbLogHelpers.LogHashValidationToDb(logger,multipagosResponse, rawData,generatedHash, (generatedHash == multipagosResponse.mp_signature) ? "HASH_VALIDO" : "HASH_INVALIDO");
+
+            loggerRepo.LogHashValidationToDb(multipagosResponse, rawData,generatedHash, (generatedHash == multipagosResponse.mp_signature) ? "HASH_VALIDO" : "HASH_INVALIDO");
 
             return result;
         }

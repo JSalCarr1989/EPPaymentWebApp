@@ -1,57 +1,32 @@
-﻿using System;
-using EPPaymentWebApp.Interfaces;
-using Microsoft.Extensions.Configuration;
+﻿using EPPaymentWebApp.Interfaces;
 using System.Data;
-using System.Data.SqlClient;
 using Dapper;
-using Serilog;
-using Serilog.Formatting.Compact;
 
 namespace EPPaymentWebApp.Models
 {
     public class ResponsePaymentRepository : IResponsePaymentRepository
     {
 
-        private IConfiguration _config;
-        private readonly string _connectionString;
-        private readonly ILogger _logger;
+        private readonly IDbConnectionRepository _dbConnectionRepository;
+        private readonly IDbLoggerRepository _dbLoggerRepository;
+        private readonly IDbConnection _conn;
 
-        public ResponsePaymentRepository(IConfiguration config)
+        public ResponsePaymentRepository(
+                                        IDbConnectionRepository dbConnectionRepository,
+                                        IDbLoggerRepository dbLoggerRepository
+                                        )
         {
-            _config = config;
-
-            var environmentConnectionString = Environment.GetEnvironmentVariable("EpPaymentDevConnectionStringEnvironment", EnvironmentVariableTarget.Machine);
-
-            var connectionString = !string.IsNullOrEmpty(environmentConnectionString)
-                                   ? environmentConnectionString
-                                   : _config.GetConnectionString("EpPaymentDevConnectionString");
-
-            _connectionString = connectionString;
-
-            var logger = new LoggerConfiguration()
-                        .MinimumLevel.Debug()
-                        .WriteTo.RollingFile(new CompactJsonFormatter(),
-                                              @"E:\LOG\EnterprisePaymentLog.json",
-                                              shared: true,
-                                              retainedFileCountLimit: 30
-                                              )
-                       .CreateLogger();
-            _logger = logger;
+            _dbConnectionRepository = dbConnectionRepository;
+            _dbLoggerRepository = dbLoggerRepository;
+            _conn = _dbConnectionRepository.CreateDbConnection();
 
         }
 
-        public IDbConnection Connection
-        {
-            get
-            {
-                return new SqlConnection(_connectionString);
-            }
-        }
 
         public int CreateResponsePayment(ResponsePaymentDTO responseDTO)
         {
             int responsePaymentId;
-            using (IDbConnection conn = Connection)
+            using (_conn)
             {
                 var parameters = new DynamicParameters();
 
@@ -77,52 +52,17 @@ namespace EPPaymentWebApp.Models
                                 dbType: DbType.Int32,
                                 direction: ParameterDirection.Output);
 
-                _logger.Information(
-                     "Before Insert Response Payment with the following data:" +
-                "MpOrder: {MpOrder}" +
-                "MpReference: {MpReference}" +
-                "MpAmount:{MpAmount}" +
-                "MpPaymentMethod:{MpPaymentMethod}" +
-                "MpResponse:{MpResponse}" +
-                "MpResponseMsg:{MpResponseMsg}" +
-                "MpAuthorization:{MpAuthorization}" +
-                "MpSignature:{MpSignature}" +
-                "MpPan:{MpPan}" +
-                "MpDate:{MpDate}" +
-                "MpBankName:{MpBankName}" +
-                "MpFolio:{MpFolio}" +
-                "MpSbToken:{MpSbToken}" +
-                "MpSaleId:{MpSaleId}" +
-                "MpCardHolderName: {MpCardHolderName}" +
-                "ResponsePaymentTypeDescription:{ResponsePaymentTypeDescription}"+
-                "ResponsePaymentHashStatusDescription:{ResponsePaymentHashStatusDescription}"+
-                "PaymentRequestId:{PaymentRequestId}",
-                     responseDTO.MpOrder,
-                     responseDTO.MpReference,
-                     responseDTO.MpAmount,
-                     responseDTO.MpPaymentMethod,
-                     responseDTO.MpResponse,
-                     responseDTO.MpResponseMsg,
-                     responseDTO.MpAuthorization,
-                     responseDTO.MpSignature,
-                     responseDTO.MpPan,
-                     responseDTO.MpDate,
-                     responseDTO.MpBankName,
-                     responseDTO.MpFolio,
-                     responseDTO.MpSbToken,
-                     responseDTO.MpSaleId,
-                     responseDTO.MpCardHolderName,
-                     responseDTO.ResponsePaymentTypeDescription,
-                     responseDTO.ResponsePaymentHashStatusDescription,
-                     responseDTO.PaymentRequestId
-                   );
+                _conn.Open();
 
-                conn.Open();
-
-                conn.Query("SP_CREATE_RESPONSE_ENTERPRISE_PAYMENT",parameters,commandType: CommandType.StoredProcedure);
-
+                _conn.Query(
+                    "SP_CREATE_RESPONSE_ENTERPRISE_PAYMENT",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                    );
 
                 responsePaymentId = parameters.Get<int>("RESPONSE_PAYMENT_ID");
+
+                _dbLoggerRepository.LogCreateResponsePayment(responseDTO, responsePaymentId);
 
                 return responsePaymentId;
 
@@ -131,22 +71,10 @@ namespace EPPaymentWebApp.Models
 
         public ResponsePayment GetResponsePaymentById(int responsePaymentId)
         {
-            using (IDbConnection conn = Connection)
+            using (_conn)
             {
-                _logger.Information(
-     "Before Search ResponsePaymentData:" +
-     "response payment id:{responsePaymentId}",
-      responsePaymentId
-   );
-
-                conn.Open();
-                var result = conn.QueryFirst<ResponsePayment>("SP_EP_GET_RESPONSEPAYMENT_BY_ID", new { RESPONSE_PAYMENT_ID = responsePaymentId}, commandType: CommandType.StoredProcedure);
-
-                _logger.Information(
-"After Search ResponsePaymentData:" +
-"response payment id:{responsePaymentId}",
-result.ResponsePaymentId
-);
+                _conn.Open();
+                var result = _conn.QueryFirst<ResponsePayment>("SP_EP_GET_RESPONSEPAYMENT_BY_ID", new { RESPONSE_PAYMENT_ID = responsePaymentId}, commandType: CommandType.StoredProcedure);
 
                 return result;
             }

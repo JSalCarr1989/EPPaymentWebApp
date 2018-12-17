@@ -1,8 +1,5 @@
-﻿using System;
-using System.Data;
-using System.Data.SqlClient;
+﻿using System.Data;
 using EPPaymentWebApp.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Dapper;
 
 namespace EPPaymentWebApp.Models
@@ -10,37 +7,26 @@ namespace EPPaymentWebApp.Models
     public class SentToTibcoRepository : ISentToTibcoRepository
     {
 
-        private readonly IConfiguration _config;
-        private readonly string _connectionString;
+        private readonly IDbConnectionRepository _dbConnectionRepository;
+        private readonly IDbLoggerRepository _dbLoggerRepository;
+        private readonly IDbConnection _conn;
 
-        public SentToTibcoRepository(IConfiguration config)
+        public SentToTibcoRepository(IDbConnectionRepository dbConnectionRepository, IDbLoggerRepository dbLoggerRepository)
         {
-            _config = config;
-
-            var environmentConnectionString = Environment.GetEnvironmentVariable("EpPaymentDevConnectionStringEnvironment", EnvironmentVariableTarget.Machine);
-
-            var connectionString = !string.IsNullOrEmpty(environmentConnectionString)
-                                   ? environmentConnectionString
-                                   : _config.GetConnectionString("EpPaymentDevConnectionString");
-
-            _connectionString = connectionString;
-        }
-
-        public IDbConnection Connection
-        {
-            get
-            {
-                return new SqlConnection(_connectionString);
-                
-            }
+            _dbConnectionRepository = dbConnectionRepository;
+            _dbLoggerRepository = dbLoggerRepository;
+            _conn = _dbConnectionRepository.CreateDbConnection();
         }
 
 
 
-        public bool GetEndPaymentSentToTibco(string endPaymentStatusDescription, string responsePaymentType, int responsePaymentId)
+        public bool GetEndPaymentSentToTibco(
+            string endPaymentStatusDescription, 
+            string responsePaymentType, int responsePaymentId)
         {
             int sentToTibcoCount;
-            using (IDbConnection conn = Connection)
+            bool sentToTibco;
+            using (_conn)
             {
 
                 var parameters = new DynamicParameters();
@@ -53,13 +39,17 @@ namespace EPPaymentWebApp.Models
     dbType: DbType.Int32,
     direction: ParameterDirection.Output);
 
-                conn.Open();
+                _conn.Open();
 
-                conn.Query("SP_GET_SENT_TO_TIBCO", parameters, commandType: CommandType.StoredProcedure);
+                _conn.Query("SP_GET_SENT_TO_TIBCO", parameters, commandType: CommandType.StoredProcedure);
 
                 sentToTibcoCount = parameters.Get<int>("SENT_NUM");
 
-                return (sentToTibcoCount > 0) ? true : false;
+                sentToTibco = (sentToTibcoCount > 0) ? true : false;
+
+                _dbLoggerRepository.LogGetSentExists(endPaymentStatusDescription, responsePaymentType, responsePaymentId, sentToTibco);
+
+                return sentToTibco;
 
             }
         }

@@ -1,58 +1,43 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
 using EPPaymentWebApp.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Dapper;
-using Serilog;
-using Serilog.Formatting.Compact;
 
 namespace EPPaymentWebApp.Models
 {
     public class LogPaymentRepository : ILogPaymentRepository
     {
 
-        private IConfiguration _config;
-        private readonly string _connectionString;
-        private readonly ILogger _logger;
+       
+        
+        private readonly IDbLoggerRepository _dbLoggerRepository;
+        private readonly IDbConnectionRepository _connectionRepository;
+        private readonly IDbConnection _conn;
+        
 
-        public LogPaymentRepository(IConfiguration config)
+        public LogPaymentRepository(
+                                    IDbLoggerRepository dbLoggerRepository,
+                                    IDbConnectionRepository connectionRepository
+                                   )
         {
-            _config = config;
+            
+            _connectionRepository = connectionRepository;
+            _dbLoggerRepository = dbLoggerRepository;
 
-            var environmentConnectionString = Environment.GetEnvironmentVariable("EpPaymentDevConnectionStringEnvironment", EnvironmentVariableTarget.Machine);
-
-            var connectionString = !string.IsNullOrEmpty(environmentConnectionString)
-                       ? environmentConnectionString
-                       : _config.GetConnectionString("EpPaymentDevConnectionString");
-
-            _connectionString = connectionString;
-
-            var logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.RollingFile(new CompactJsonFormatter(),
-                                  @"E:\LOG\EnterprisePaymentLog.json",
-                                  shared: true,
-                                  retainedFileCountLimit: 30
-                                  )
-           .CreateLogger();
-            _logger = logger;
+            _conn = _connectionRepository.CreateDbConnection();
 
         }
 
-        public IDbConnection Connection
-        {
-            get
-            {
-                return new SqlConnection(_connectionString);
-            }
-        }
-
-        public LogPayment GetLastRequestPaymentId(decimal amount, string serviceRequest, string paymentReference, string StatusPayment)
+        public LogPayment GetLastRequestPaymentId(
+                                                  decimal amount, 
+                                                  string serviceRequest, 
+                                                  string paymentReference, 
+                                                  string StatusPayment
+                                                 )
         {
             LogPayment result = new LogPayment();
 
-            using (IDbConnection conn = Connection)
+            using (_conn)
             {
                 try
                 {
@@ -63,28 +48,16 @@ namespace EPPaymentWebApp.Models
                     parameters.Add("@PAYMENT_REFERENCE", paymentReference);
                     parameters.Add("@STATUS_PAYMENT", StatusPayment);
 
-                    _logger.Information(
-        "Before Search Request Payment Id with the following data:" + 
-        "amount: {amount}" +
-        "service request: {serviceRequest}"+
-        "payment reference: {paymentReference}" +
-        "status payment: {StatusPayment}",
-        amount,
-        serviceRequest,
-        paymentReference,
-        StatusPayment
-      );
+                    _conn.Open();
 
-                    conn.Open();
-
-                    result = conn.QueryFirst<LogPayment>("GET_LAST_REQUESTPAYMENT_ID",parameters, commandType: CommandType.StoredProcedure);
+                    result = _conn.QueryFirst<LogPayment>(
+                                           "GET_LAST_REQUESTPAYMENT_ID",
+                                           parameters, 
+                                           commandType: CommandType.StoredProcedure
+                                           );
 
 
-                    _logger.Information(
-"Results of search requestppaymentid:" +
-"request payment id: {RequestPaymentId}",
- result.RequestPaymentId
-);
+                    _dbLoggerRepository.LogGetLastRequestPaymentId(amount, serviceRequest, paymentReference, StatusPayment, result.RequestPaymentId);
 
                     return result;
                 }

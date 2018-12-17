@@ -1,4 +1,5 @@
 ﻿using System;
+using EPPaymentWebApp.Extensions;
 using EPPaymentWebApp.Interfaces;
 using EPPaymentWebApp.Models;
 using Microsoft.AspNetCore.Builder;
@@ -22,13 +23,8 @@ namespace EPPaymentWebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddTransient<IBeginPaymentRepository, BeginPaymentRepository>();
-            services.AddTransient<IResponsePaymentRepository, ResponsePaymentRepository>();
-            services.AddTransient<ILogPaymentRepository, LogPaymentRepository>();
-            services.AddTransient<IEndPaymentRepository, EndPaymentRepository>();
-            services.AddTransient<IResponseBankRequestTypeTibcoRepository, ResponseBankRequestTypeTibcoRepository>();
-            services.AddTransient<IEnterprisePaymentViewModelRepository, EnterprisePaymentViewModelRepository>();
-            services.AddTransient<ISentToTibcoRepository, SentToTibcoRepository>();
+
+            services.RegisterServices();
 
             services.AddDistributedMemoryCache();
 
