@@ -2,7 +2,7 @@
   "ProviderId": "Microsoft.VisualStudio.ConnectedService.Wcf",
   "Version": "15.0.20628.921",
   "ExtendedData": {
-    "Uri": "C:\\Users\\co_jcarillog\\Desktop\\ServicioBancomer.wsdl",
+    "Uri": "C:\\Users\\co_jcarillog\\Desktop\\NUEVO_WSDL_TIBCO\\ServicioBancomer.wsdl",
     "Namespace": "TibcoServiceReference",
     "SelectedAccessLevelForGeneratedClass": "Public",
     "GenerateMessageContract": false,

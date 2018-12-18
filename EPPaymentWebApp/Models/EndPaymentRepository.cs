@@ -57,7 +57,7 @@ namespace EPPaymentWebApp.Models
                 
             }
         }
-
+        //Codigo en desuso
         public bool ValidateEndPaymentSentStatus(int endPaymentId)
         {
             using (_conn)

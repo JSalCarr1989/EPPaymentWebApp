@@ -133,12 +133,12 @@ namespace EPPaymentWebApp.Controllers
 
 
             if (sentExists != true)
-            { 
+            {
                 string resultMessage = await _responseBankRequestTypeTybcoRepo.SendEndPaymentToTibco(_endPayment);
-                
+
                 if (resultMessage == "OK")
                 {
-                     _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, "ENVIADO_TIBCO");
+                    _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, "ENVIADO_TIBCO");
 
                 }
 

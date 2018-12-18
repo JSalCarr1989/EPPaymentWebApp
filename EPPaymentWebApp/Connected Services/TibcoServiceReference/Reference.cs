@@ -114,6 +114,10 @@ namespace TibcoServiceReference
         
         private string billingAccountField;
         
+        private string montoField;
+        
+        private string tarjetaHabienteField;
+        
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Order=0)]
         public string UltimosCuatroDigitos
@@ -223,6 +227,34 @@ namespace TibcoServiceReference
             set
             {
                 this.billingAccountField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=8)]
+        public string Monto
+        {
+            get
+            {
+                return this.montoField;
+            }
+            set
+            {
+                this.montoField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=9)]
+        public string TarjetaHabiente
+        {
+            get
+            {
+                return this.tarjetaHabienteField;
+            }
+            set
+            {
+                this.tarjetaHabienteField = value;
             }
         }
     }

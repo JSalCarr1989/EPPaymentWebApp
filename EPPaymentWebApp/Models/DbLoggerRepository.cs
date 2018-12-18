@@ -159,21 +159,24 @@ namespace EPPaymentWebApp.Models
         {
             get
             {
-                return "EndPayment Search: ResponsePaymentId: {@responsePaymentId} " +
-                        "Searched EndPayment: EndPaymentId: {@EndPaymentId} " +
-                                             "CcLastFour: {@CcLastFour} " +
-                                             "Token: {@Token} " +
-                                             "ResponseCode: {@ResponseCode} " +
-                                             "ResponseMessage: {@ResponseMessage} " +
-                                             "TransactionNumber: {@TransactionNumber} " +
-                                             "CcType: {@CcType} " +
-                                             "IssuingBank: {@IssuingBank} " +
-                                             "ServiceRequest: {@ServiceRequest} " +
-                                             "BillingAccount: {@BillingAccount} " +
-                                             "PaymentReference: {@PaymentReference} " +
-                                             "PaymentStage:{@EndPaymentStage} " +
-                                             "ComunicationStep:{@LogComunicationStep} " +
-                                             "Application:{@Application}";
+                return @"EndPayment Search: ResponsePaymentId: {@responsePaymentId} 
+                         Searched EndPayment: EndPaymentId: {@EndPaymentId} 
+                                             CcLastFour: {@CcLastFour} 
+                                             CcBin: {@CcBin}
+                                             Token: {@Token} 
+                                             ResponseCode: {@ResponseCode} 
+                                             ResponseMessage: {@ResponseMessage} 
+                                             TransactionNumber: {@TransactionNumber} 
+                                             CcType: {@CcType} 
+                                             IssuingBank: {@IssuingBank} 
+                                             Amount: { @Amount}
+                                             CardHolderName: { @CardHolderName}
+                                             ServiceRequest: {@ServiceRequest} 
+                                             BillingAccount: {@BillingAccount} 
+                                             PaymentReference: {@PaymentReference} 
+                                             PaymentStage:{@EndPaymentStage} 
+                                             ComunicationStep:{@LogComunicationStep} 
+                                             Application:{@Application}";
             }
         }
 
@@ -193,19 +196,21 @@ namespace EPPaymentWebApp.Models
         {
             get
             {
-                return "Data that has sent to Tibco: UltimosCuatroDigitos: {@UltimosCuatroDigitos} " +
-                                                    "Token: {@Token} " +
-                                                    "RespuestaBanco: {@RespuestaBanco} " +
-                                                    "NumeroTransaccion: {@NumeroTransaccion} " +
-                                                    "TipoTarjeta:{@TipoTarjeta} " +
-                                                    "BancoEmisor: {@BancoEmisor} " +
-                                                    "SeviceRequest:{@SeviceRequest} " +
-                                                    "BillingAccount: {@BillingAccount} " +
-                                                    "Response From Tibco: ErrorMessage: {@ErrorMessage} " +
-                                                    "ErrorCode:{@ErrorCode}" +
-                                                    "PaymentStage:{@EndPaymentStage} " +
-                                                    "ComunicationStep:{@LogComunicationStep} " +
-                                                    "Application:{@Application}";
+                return @"Data that has sent to Tibco: UltimosCuatroDigitos: {@UltimosCuatroDigitos} 
+                                                     Token: {@Token} 
+                                                     RespuestaBanco: {@RespuestaBanco} 
+                                                     NumeroTransaccion: {@NumeroTransaccion} 
+                                                     TipoTarjeta:{@TipoTarjeta} 
+                                                     BancoEmisor: {@BancoEmisor} 
+                                                     SeviceRequest:{@SeviceRequest} 
+                                                     BillingAccount: {@BillingAccount} 
+                                                     Amount: {@Amount} 
+                                                     CardHolderName: {@CardHolderName} 
+                                                     Response From Tibco: ErrorMessage: {@ErrorMessage} 
+                                                     ErrorCode:{@ErrorCode} 
+                                                     PaymentStage:{@EndPaymentStage} 
+                                                     ComunicationStep:{@LogComunicationStep} 
+                                                     Application:{@Application}";
             }
         }
 
@@ -341,12 +346,15 @@ namespace EPPaymentWebApp.Models
                 responsePaymentId,
                 endPayment.EndPaymentId,
                 endPayment.CcLastFour,
+                endPayment.CcBin,
                 endPayment.Token,
                 endPayment.ResponseCode,
                 endPayment.ResponseMessage,
                 endPayment.TransactionNumber,
                 endPayment.CcType,
                 endPayment.IssuingBank,
+                endPayment.Amount,
+                endPayment.CardHolderName,
                 endPayment.ServiceRequest,
                 endPayment.BillingAccount,
                 endPayment.PaymentReference,
@@ -380,6 +388,8 @@ namespace EPPaymentWebApp.Models
                 requestToTibco.BancoEmisor,
                 requestToTibco.SeviceRequest,
                 requestToTibco.BillingAccount,
+                requestToTibco.Monto,
+                requestToTibco.TarjetaHabiente,
                 responseFromTibco.ResponseBankResponse1.ErrorMessage,
                 responseFromTibco.ResponseBankResponse1.ErrorCode,
                 EndPaymentStage,

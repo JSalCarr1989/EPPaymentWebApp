@@ -115,7 +115,7 @@ namespace EPPaymentWebApp.Helpers
 
             result = (generatedHash == multipagosResponse.mp_signature) ? true : false;
 
-            //EnterprisePaymentDbLogHelpers.LogHashValidationToDb(logger,multipagosResponse, rawData,generatedHash, (generatedHash == multipagosResponse.mp_signature) ? "HASH_VALIDO" : "HASH_INVALIDO");
+            
 
             loggerRepo.LogHashValidationToDb(multipagosResponse, rawData,generatedHash, (generatedHash == multipagosResponse.mp_signature) ? "HASH_VALIDO" : "HASH_INVALIDO");
 

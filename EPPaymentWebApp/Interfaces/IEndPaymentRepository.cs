@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using EPPaymentWebApp.Models;
 
 namespace EPPaymentWebApp.Interfaces
@@ -9,7 +6,11 @@ namespace EPPaymentWebApp.Interfaces
     public interface IEndPaymentRepository
     {
         EndPayment GetEndPaymentByResponsePaymentId(int responsePaymentId);
+
+        //codigo en desuso
         Boolean ValidateEndPaymentSentStatus(int endPaymentId);
+        //codigo en desuso
+
         void UpdateEndPaymentSentStatus(int endPaymentId,string endPaymentSentStatus);
     }
 }

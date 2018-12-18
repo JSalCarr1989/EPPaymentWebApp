@@ -26,7 +26,9 @@ namespace EPPaymentWebApp.Models
                 TipoTarjeta = endPayment.CcType,
                 BancoEmisor = endPayment.IssuingBank,
                 SeviceRequest = endPayment.ServiceRequest,
-                BillingAccount = endPayment.BillingAccount
+                BillingAccount = endPayment.BillingAccount,
+                Monto = endPayment.Amount.ToString(),
+                TarjetaHabiente = endPayment.CardHolderName
             };
 
             ResponseBankClient responsebank = new ResponseBankClient();
