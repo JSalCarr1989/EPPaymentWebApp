@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using EPPaymentWebApp.Interfaces;
+using EPPaymentWebApp.Utilities;
 using Dapper;
 
 namespace EPPaymentWebApp.Models
@@ -43,15 +44,15 @@ namespace EPPaymentWebApp.Models
                 {
 
                     var parameters = new DynamicParameters();
-                    parameters.Add("@PAYMENT_REQUEST_AMOUNT", amount);
-                    parameters.Add("@SERVICE_REQUEST", serviceRequest);
-                    parameters.Add("@PAYMENT_REFERENCE", paymentReference);
-                    parameters.Add("@STATUS_PAYMENT", StatusPayment);
+                    parameters.Add(StaticLogPaymentProperties.PAYMENT_REQUEST_AMOUNT, amount);
+                    parameters.Add(StaticLogPaymentProperties.SERVICE_REQUEST, serviceRequest);
+                    parameters.Add(StaticLogPaymentProperties.PAYMENT_REFERENCE, paymentReference);
+                    parameters.Add(StaticLogPaymentProperties.STATUS_PAYMENT, StatusPayment);
 
                     _conn.Open();
 
                     result = _conn.QueryFirst<LogPayment>(
-                                           "GET_LAST_REQUESTPAYMENT_ID",
+                                           StaticLogPaymentProperties.GET_LAST_REQUESTPAYMENT_ID,
                                            parameters, 
                                            commandType: CommandType.StoredProcedure
                                            );

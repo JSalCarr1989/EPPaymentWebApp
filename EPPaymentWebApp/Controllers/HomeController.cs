@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using EPPaymentWebApp.Models;
 using EPPaymentWebApp.Interfaces;
 using EPPaymentWebApp.Helpers;
+using EPPaymentWebApp.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
@@ -104,14 +105,15 @@ namespace EPPaymentWebApp.Controllers
                 _dbLoggerRepository
                 );
 
-            var hashStatus = (ValidHash) ? "HASH_VALIDO" : "HASH_INVALIDO";
+            var hashStatus = (ValidHash) ? StaticResponsePaymentProperties.VALID_HASH 
+                                         : StaticResponsePaymentProperties.INVALID_HASH;
 
             
             var logPayment = _logPaymentRepo.GetLastRequestPaymentId(
                 multiPagosResponse.mp_amount,
                 multiPagosResponse.mp_order,
                 multiPagosResponse.mp_reference,
-                "REQUEST_PAYMENT");
+                StaticResponsePaymentProperties.REQUEST_PAYMENT_STATUS);
 
 
             var responsePaymentDTO = EnterprisePaymentHelpers.GenerateResponsePaymentDTO(
@@ -123,8 +125,8 @@ namespace EPPaymentWebApp.Controllers
 
 
             var sentExists =_sentToTibcoRepo.GetEndPaymentSentToTibco(
-                "ENVIADO_TIBCO", 
-                "MULTIPAGOS_SERVER2SERVER", 
+                StaticResponsePaymentProperties.ENDPAYMENT_SENTED_STATUS,
+                StaticResponsePaymentProperties.RESPONSEPAYMENT_TYPE_S2S, 
                 responsePaymentId
                 );
 
@@ -136,9 +138,9 @@ namespace EPPaymentWebApp.Controllers
             {
                 string resultMessage = await _responseBankRequestTypeTybcoRepo.SendEndPaymentToTibco(_endPayment);
 
-                if (resultMessage == "OK")
+                if (resultMessage == StaticResponsePaymentProperties.TIBCO_OK_RESULT_MESSAGE)
                 {
-                    _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, "ENVIADO_TIBCO");
+                    _endPaymentRepo.UpdateEndPaymentSentStatus(_endPayment.EndPaymentId, StaticResponsePaymentProperties.ENDPAYMENT_SENTED_STATUS);
 
                 }
 

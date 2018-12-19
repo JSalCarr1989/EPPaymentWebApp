@@ -2,8 +2,8 @@
 using EPPaymentWebApp.Models;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Configuration;
-using Serilog;
 using EPPaymentWebApp.Interfaces;
+using EPPaymentWebApp.Utilities;
 
 namespace EPPaymentWebApp.Helpers
 {
@@ -91,7 +91,7 @@ namespace EPPaymentWebApp.Helpers
                 MpSbToken = string.IsNullOrWhiteSpace(multiPagosResponse.mp_sbtoken) ? "NO_GENERADO" : multiPagosResponse.mp_sbtoken,
                 MpSaleId = multiPagosResponse.mp_saleid,
                 MpCardHolderName = multiPagosResponse.mp_cardholdername,
-                ResponsePaymentTypeDescription = "MULTIPAGOS_POST",
+                ResponsePaymentTypeDescription = StaticResponsePaymentProperties.RESPONSEPAYMENT_TYPE_POST,
                 ResponsePaymentHashStatusDescription = hashStatus,
                 PaymentRequestId = requestPaymentId
             };

@@ -1,4 +1,5 @@
 ﻿using EPPaymentWebApp.Interfaces;
+using EPPaymentWebApp.Utilities;
 using System.Data;
 using Dapper;
 
@@ -27,7 +28,7 @@ namespace EPPaymentWebApp.Models
             {
                 _conn.Open();
                 var result = _conn.QueryFirst<EnterprisePaymentViewModel>(
-                    "SP_GET_ENTERPRISEPAYMENT_VIEW_MODEL_BY_SR_PR", 
+                    StaticEnterprisePaymentViewModelProperties.SP_GET_ENTERPRISEPAYMENT_VIEW_MODEL_BY_SR_PR, 
                     new {SERVICE_REQUEST = serviceRequest,
                         PAYMENT_REFERENCE =paymentReference }, 
                     commandType: CommandType.StoredProcedure);
