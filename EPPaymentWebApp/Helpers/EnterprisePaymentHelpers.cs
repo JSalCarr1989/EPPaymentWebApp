@@ -9,115 +9,159 @@ namespace EPPaymentWebApp.Helpers
 {
     public static class EnterprisePaymentHelpers
     {
-        public static EnterprisePaymentViewModel GenerateEnterprisePaymentViewModelRequestPayment(BeginPayment beginPayment)
+        public static EnterprisePaymentViewModel GenerateEnterprisePaymentViewModelRequestPayment(BeginPayment beginPayment, IDbLoggerErrorRepository dbLoggerErrorRepository)
         {
-            
-            var viewModel = new EnterprisePaymentViewModel
-            {
+            EnterprisePaymentViewModel viewModel = null;
 
-                BillingAccount = beginPayment.BillingAccount, // mostrado
-                Currency = "Pesos", // mostrado
-                CreateToken = (beginPayment.CreateToken == "1") ? "SI" : "NO", // mostrado
-                BeginPaymentId = beginPayment.BeginPaymentId, // incluido en la vista como hiden
-                Mp_account = "7581", //mp_account de preproduccion.
-                Mp_product = "1", //incluido en la vista como hidden
-                Mp_order = beginPayment.ServiceRequest, // mostrado
-                Mp_reference = beginPayment.PaymentReference, // incluido en la vista como hidden, PaymentReference BeginPayment. 
-                Mp_node = "0", // incluido en la vista como hidden.
-                Mp_concept = "1", // incluido en la vista como hidden
-                Mp_amount = "", // mostrado 
-                Mp_customername = "", // mostrado
-                Mp_signature = "", // incluido en la vista como hidden
-                Mp_currency = "1", //Incluido en la vista como hidden 
-                Mp_urlsuccess = "https://100.125.0.119:443/Home/HandleResponse", //Incluido en la vista como hidden 
-                Mp_urlfailure = "https://100.125.0.119:443/Home/HandleResponse", //Incluido en la vista como hidden
-                Mp_registersb = beginPayment.CreateToken, //Incluido en la vista como hidden 
-                BankResponse = string.Empty,
-                TransactionNumber = string.Empty,
-                Token = string.Empty,
-                CcLastFour = string.Empty,
-                IssuingBank = string.Empty,
-                CcType = string.Empty
-            };
+            try
+            {
+                viewModel = new EnterprisePaymentViewModel
+                {
+
+                    BillingAccount = beginPayment.BillingAccount, // mostrado
+                    Currency = "Pesos", // mostrado
+                    CreateToken = (beginPayment.CreateToken == "1") ? "SI" : "NO", // mostrado
+                    BeginPaymentId = beginPayment.BeginPaymentId, // incluido en la vista como hiden
+                    Mp_account = "7581", //mp_account de preproduccion.
+                    Mp_product = "1", //incluido en la vista como hidden
+                    Mp_order = beginPayment.ServiceRequest, // mostrado
+                    Mp_reference = beginPayment.PaymentReference, // incluido en pola vista como hidden, PaymentReference BeginPayment. 
+                    Mp_node = "0", // incluido en la vista como hidden.
+                    Mp_concept = "1", // incluido en la vista como hidden
+                    Mp_amount = "", // mostrado 
+                    Mp_customername = "", // mostrado
+                    Mp_signature = "", // incluido en la vista como hidden
+                    Mp_currency = "1", //Incluido en la vista como hidden 
+                    Mp_urlsuccess = "https://enterprisepayment.axtel.com.mx/Home/HandleResponse", //Incluido en la vista como hidden 
+                    Mp_urlfailure = "https://enterprisepayment.axtel.com.mx/Home/HandleResponse", //Incluido en la vista como hidden
+                    Mp_registersb = beginPayment.CreateToken, //Incluido en la vista como hidden 
+                    BankResponse = string.Empty,
+                    TransactionNumber = string.Empty,
+                    Token = string.Empty,
+                    CcLastFour = string.Empty,
+                    IssuingBank = string.Empty,
+                    CcType = string.Empty
+                };
+            }
+            catch(Exception ex)
+            {
+                dbLoggerErrorRepository.LogGenerateEnterprisePaymentViewModelRequestPaymentError(ex.ToString(), beginPayment.PaymentReference, beginPayment.ServiceRequest);
+            }
 
             return viewModel;
         }
 
-        private static string ComputeSha256Hash(string rawData,string secret)
+        private static string ComputeSha256Hash(string rawData,string secret, IDbLoggerErrorRepository dbLoggerErrorRepository)
         {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                secret = secret ?? "";
-                var encoding = new System.Text.ASCIIEncoding();
-                byte[] keyByte = encoding.GetBytes(secret);
-                byte[] messageBytes = encoding.GetBytes(rawData);
+            string computedHash = string.Empty;
 
-                using (var hmacsha256 = new HMACSHA256(keyByte))
+            try
+            {
+                using (SHA256 sha256Hash = SHA256.Create())
                 {
-                    byte[] hashmessage = hmacsha256.ComputeHash(messageBytes);
-                    return ByteToString(hashmessage);
+                    secret = secret ?? "";
+                    var encoding = new System.Text.ASCIIEncoding();
+                    byte[] keyByte = encoding.GetBytes(secret);
+                    byte[] messageBytes = encoding.GetBytes(rawData);
+
+                    using (var hmacsha256 = new HMACSHA256(keyByte))
+                    {
+                        byte[] hashmessage = hmacsha256.ComputeHash(messageBytes);
+                        computedHash = ByteToString(hashmessage,dbLoggerErrorRepository);
+                    }
                 }
             }
+            catch(Exception ex)
+            {
+                dbLoggerErrorRepository.LogCompute256HashError(ex.ToString());
+            }
+
+            return computedHash;
         }
 
-        public static string ByteToString(byte[] buff)
+        public static string ByteToString(byte[] buff, IDbLoggerErrorRepository dbLoggerErrorRepository)
         {
             string sbinary = "";
 
-
-            for (int i = 0; i < buff.Length; i++)
+            try
             {
-                sbinary += buff[i].ToString("X2"); // hex format
+                for (int i = 0; i < buff.Length; i++)
+                {
+                    sbinary += buff[i].ToString("X2"); // hex format
+                }
             }
+            catch(Exception ex)
+            {
+                dbLoggerErrorRepository.LogByteToStringError(ex.ToString());
+            }
+
             return (sbinary).ToLower();
         }
 
-        public static ResponsePaymentDTO GenerateResponsePaymentDTO(MultiPagosResponsePaymentDTO multiPagosResponse,int requestPaymentId, string hashStatus)
+        public static ResponsePaymentDTO GenerateResponsePaymentDTO(MultiPagosResponsePaymentDTO multiPagosResponse,int requestPaymentId, string hashStatus, IDbLoggerErrorRepository dbLoggerErrorRepository)
         {
-            ResponsePaymentDTO _responsePaymentDTO = new ResponsePaymentDTO
+            ResponsePaymentDTO _responsePaymentDTO = null;
+
+            try
             {
-                MpOrder = multiPagosResponse.mp_order,
-                MpReference = multiPagosResponse.mp_reference,
-                MpAmount = multiPagosResponse.mp_amount,
-                MpPaymentMethod = multiPagosResponse.mp_paymentmethod,
-                MpResponse = multiPagosResponse.mp_response,
-                MpResponseMsg = multiPagosResponse.mp_responsemsg,
-                MpAuthorization = multiPagosResponse.mp_authorization,
-                MpSignature = multiPagosResponse.mp_signature,
-                MpPan = multiPagosResponse.mp_pan,
-                MpDate =  (string.IsNullOrWhiteSpace(multiPagosResponse.mp_date)) ? DateTime.Now :Convert.ToDateTime(multiPagosResponse.mp_date),
-                MpBankName = multiPagosResponse.mp_bankname,
-                MpFolio = string.IsNullOrWhiteSpace(multiPagosResponse.mp_folio) ? "NO_GENERADO" : multiPagosResponse.mp_folio,
-                MpSbToken = string.IsNullOrWhiteSpace(multiPagosResponse.mp_sbtoken) ? "NO_GENERADO" : multiPagosResponse.mp_sbtoken,
-                MpSaleId = multiPagosResponse.mp_saleid,
-                MpCardHolderName = multiPagosResponse.mp_cardholdername,
-                ResponsePaymentTypeDescription = StaticResponsePaymentProperties.RESPONSEPAYMENT_TYPE_POST,
-                ResponsePaymentHashStatusDescription = hashStatus,
-                PaymentRequestId = requestPaymentId
-            };
+                _responsePaymentDTO = new ResponsePaymentDTO
+                {
+                    MpOrder = multiPagosResponse.mp_order,
+                    MpReference = multiPagosResponse.mp_reference,
+                    MpAmount = multiPagosResponse.mp_amount,
+                    MpPaymentMethod = multiPagosResponse.mp_paymentmethod,
+                    MpResponse = multiPagosResponse.mp_response,
+                    MpResponseMsg = multiPagosResponse.mp_responsemsg,
+                    MpAuthorization = multiPagosResponse.mp_authorization,
+                    MpSignature = multiPagosResponse.mp_signature,
+                    MpPan = multiPagosResponse.mp_pan,
+                    MpDate = (string.IsNullOrWhiteSpace(multiPagosResponse.mp_date)) ? DateTime.Now : Convert.ToDateTime(multiPagosResponse.mp_date),
+                    MpBankName = multiPagosResponse.mp_bankname,
+                    MpFolio = string.IsNullOrWhiteSpace(multiPagosResponse.mp_folio) ? "NO_GENERADO" : multiPagosResponse.mp_folio,
+                    MpSbToken = string.IsNullOrWhiteSpace(multiPagosResponse.mp_sbtoken) ? "NO_GENERADO" : multiPagosResponse.mp_sbtoken,
+                    MpSaleId = multiPagosResponse.mp_saleid,
+                    MpCardHolderName = multiPagosResponse.mp_cardholdername,
+                    ResponsePaymentTypeDescription = StaticResponsePaymentProperties.RESPONSEPAYMENT_TYPE_POST,
+                    ResponsePaymentHashStatusDescription = hashStatus,
+                    PaymentRequestId = requestPaymentId
+                };
+            }
+            catch(Exception ex)
+            {
+                dbLoggerErrorRepository.LogGenerateResponsePaymentDTOError(ex.ToString(), multiPagosResponse.mp_reference, multiPagosResponse.mp_order);
+            }
 
             return _responsePaymentDTO;
         }
 
-        public static Boolean ValidateMultipagosHash(MultiPagosResponsePaymentDTO multipagosResponse,IConfiguration config,IDbLoggerRepository loggerRepo)
+        public static Boolean ValidateMultipagosHash(
+            MultiPagosResponsePaymentDTO multipagosResponse,
+            IConfiguration config,
+            IDbLoggerRepository loggerRepo,
+            IDbLoggerErrorRepository loggerErrorRepo)
         {
-            bool result;
-            
-            var rawData = multipagosResponse.mp_order + multipagosResponse.mp_reference + multipagosResponse.mp_amount + multipagosResponse.mp_authorization;
+            bool result = false;
 
-            var environmentMpSk = Environment.GetEnvironmentVariable("MpSk", EnvironmentVariableTarget.Machine);
+            try
+            {
+                var rawData = multipagosResponse.mp_order + multipagosResponse.mp_reference + multipagosResponse.mp_amount + multipagosResponse.mp_authorization;
 
-            var _mpsk = !string.IsNullOrEmpty(environmentMpSk)
-                                   ? environmentMpSk
-                                   : config["MpSk"];
+                var environmentMpSk = Environment.GetEnvironmentVariable("MpSk", EnvironmentVariableTarget.Machine);
 
-            var generatedHash = ComputeSha256Hash(rawData, _mpsk);
+                var _mpsk = !string.IsNullOrEmpty(environmentMpSk)
+                                       ? environmentMpSk
+                                       : config["MpSk"];
 
-            result = (generatedHash == multipagosResponse.mp_signature) ? true : false;
+                var generatedHash = ComputeSha256Hash(rawData, _mpsk,loggerErrorRepo);
 
-            
+                result = (generatedHash == multipagosResponse.mp_signature) ? true : false;
 
-            loggerRepo.LogHashValidationToDb(multipagosResponse, rawData,generatedHash, (generatedHash == multipagosResponse.mp_signature) ? "HASH_VALIDO" : "HASH_INVALIDO");
+                loggerRepo.LogHashValidationToDb(multipagosResponse, rawData, generatedHash, (generatedHash == multipagosResponse.mp_signature) ? "HASH_VALIDO" : "HASH_INVALIDO");
+            }
+            catch(Exception ex)
+            {
+                loggerErrorRepo.LogValidateMultipagosHashError(ex.ToString(), multipagosResponse.mp_reference, multipagosResponse.mp_order);
+            }
 
             return result;
         }

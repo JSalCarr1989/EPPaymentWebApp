@@ -1,7 +1,5 @@
 ﻿using System;
 using EPPaymentWebApp.Extensions;
-using EPPaymentWebApp.Interfaces;
-using EPPaymentWebApp.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -57,9 +55,10 @@ namespace EPPaymentWebApp
             }
             else
             {
+                //app.UseDeveloperExceptionPage();
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
-                app.UseDeveloperExceptionPage();
+                
             }
             
             app.UseHttpsRedirection();

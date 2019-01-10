@@ -24,6 +24,7 @@ namespace EPPaymentWebApp.Controllers
         private readonly ISentToTibcoRepository _sentToTibcoRepo;
         private readonly IDbConnectionRepository _connectionStringRepo;
         private readonly IDbLoggerRepository _dbLoggerRepository;
+        private readonly IDbLoggerErrorRepository _dbLoggerErrorRepository;
      
         
 
@@ -39,7 +40,8 @@ namespace EPPaymentWebApp.Controllers
                              IEnterprisePaymentViewModelRepository enterprisePaymentViewModelRepository, 
                              ISentToTibcoRepository sentToTibcoRepo,
                              IDbConnectionRepository connectionStringRepo,
-                             IDbLoggerRepository dbLoggerRepository
+                             IDbLoggerRepository dbLoggerRepository,
+                             IDbLoggerErrorRepository dbLoggerErrorRepository
 
             )
         {
@@ -53,6 +55,7 @@ namespace EPPaymentWebApp.Controllers
             _enterprisePaymentViewModelRepository = enterprisePaymentViewModelRepository;
             _sentToTibcoRepo = sentToTibcoRepo;
             _dbLoggerRepository = dbLoggerRepository;
+            _dbLoggerErrorRepository = dbLoggerErrorRepository;
 
 
         }
@@ -71,19 +74,19 @@ namespace EPPaymentWebApp.Controllers
 
                 if  (_beginPayment != null)
                 {
-                    var viewModel = EnterprisePaymentHelpers.GenerateEnterprisePaymentViewModelRequestPayment(_beginPayment);
+                    var viewModel = EnterprisePaymentHelpers.GenerateEnterprisePaymentViewModelRequestPayment(_beginPayment,_dbLoggerErrorRepository);
                     return View(viewModel);
 
                 }
                 else
                 {
-                    return Content("404 not found dude.");
+                    return StatusCode(404);
                 }
 
             }else
             {
 
-                return Content("There is nothing here");
+                return StatusCode(404);
             }
 
             
@@ -102,7 +105,8 @@ namespace EPPaymentWebApp.Controllers
             var ValidHash =  EnterprisePaymentHelpers.ValidateMultipagosHash(
                 multiPagosResponse,
                 _config,
-                _dbLoggerRepository
+                _dbLoggerRepository,
+                _dbLoggerErrorRepository
                 );
 
             var hashStatus = (ValidHash) ? StaticResponsePaymentProperties.VALID_HASH 
@@ -119,7 +123,8 @@ namespace EPPaymentWebApp.Controllers
             var responsePaymentDTO = EnterprisePaymentHelpers.GenerateResponsePaymentDTO(
                     multiPagosResponse,
                     logPayment.RequestPaymentId,
-                    hashStatus);
+                    hashStatus,
+                    _dbLoggerErrorRepository);
 
             int responsePaymentId = _responsePaymentRepo.CreateResponsePayment(responsePaymentDTO);
 

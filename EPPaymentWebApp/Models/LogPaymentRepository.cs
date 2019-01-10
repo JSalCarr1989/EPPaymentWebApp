@@ -36,11 +36,13 @@ namespace EPPaymentWebApp.Models
                                                   string StatusPayment
                                                  )
         {
-            LogPayment result = new LogPayment();
+            LogPayment result = null;
 
-            using (_conn)
+
+
+            try
             {
-                try
+                using (_conn)
                 {
 
                     var parameters = new DynamicParameters();
@@ -50,25 +52,23 @@ namespace EPPaymentWebApp.Models
                     parameters.Add(StaticLogPaymentProperties.STATUS_PAYMENT, StatusPayment);
 
                     _conn.Open();
-
                     result = _conn.QueryFirst<LogPayment>(
                                            StaticLogPaymentProperties.GET_LAST_REQUESTPAYMENT_ID,
-                                           parameters, 
+                                           parameters,
                                            commandType: CommandType.StoredProcedure
                                            );
 
-
                     _dbLoggerRepository.LogGetLastRequestPaymentId(amount, serviceRequest, paymentReference, StatusPayment, result.RequestPaymentId);
-
-                    return result;
-                }
-                catch(Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    return result;
                 }
             }
+            catch (Exception ex)
+            {
+                //log de error
+                ex.ToString();
+            }
 
+
+            return result;
 
         }
     }

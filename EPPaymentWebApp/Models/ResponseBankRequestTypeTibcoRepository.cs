@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using EPPaymentWebApp.Interfaces;
 using TibcoServiceReference;
 
@@ -8,36 +9,52 @@ namespace EPPaymentWebApp.Models
     {
 
         private readonly IDbLoggerRepository _dbLoggerRepository;
+        private readonly IDbLoggerErrorRepository _dbLoggerErrorRepository;
 
-        public ResponseBankRequestTypeTibcoRepository(IDbLoggerRepository dbLoggerRepository)
+        public ResponseBankRequestTypeTibcoRepository(IDbLoggerRepository dbLoggerRepository,
+                                                      IDbLoggerErrorRepository dbLoggerErrorRepository)
         {
             _dbLoggerRepository = dbLoggerRepository;
+            _dbLoggerErrorRepository = dbLoggerErrorRepository;
         }
 
 
         public async Task<string> SendEndPaymentToTibco(EndPayment endPayment)
         {
-            ResponseBankRequestType request = new ResponseBankRequestType
+
+            string responseMsg = string.Empty;
+
+            try
             {
-                UltimosCuatroDigitos = endPayment.CcLastFour,
-                Token = endPayment.Token,
-                RespuestaBanco = endPayment.ResponseMessage,
-                NumeroTransaccion = endPayment.TransactionNumber,
-                TipoTarjeta = endPayment.CcType,
-                BancoEmisor = endPayment.IssuingBank,
-                SeviceRequest = endPayment.ServiceRequest,
-                BillingAccount = endPayment.BillingAccount,
-                Monto = endPayment.Amount.ToString(),
-                TarjetaHabiente = endPayment.CardHolderName
-            };
+                ResponseBankRequestType request = new ResponseBankRequestType
+                {
+                    UltimosCuatroDigitos = endPayment.CcLastFour,
+                    Token = endPayment.Token,
+                    RespuestaBanco = endPayment.ResponseMessage,
+                    NumeroTransaccion = endPayment.TransactionNumber,
+                    TipoTarjeta = "VISA",
+                    BancoEmisor = "BANCOMER",
+                    SeviceRequest = endPayment.ServiceRequest,
+                    BillingAccount = endPayment.BillingAccount,
+                    Monto = endPayment.Amount.ToString(),
+                    TarjetaHabiente = endPayment.CardHolderName
+                };
 
-            ResponseBankClient responsebank = new ResponseBankClient();
+                ResponseBankClient responsebank = new ResponseBankClient();
 
-            ResponseBankResponse response = await responsebank.ResponseBankAsync(request);
+                ResponseBankResponse response = await responsebank.ResponseBankAsync(request);
 
-            _dbLoggerRepository.LogSendEndPaymentToTibco(request, response);
+                _dbLoggerRepository.LogSendEndPaymentToTibco(request, response);
 
-            return response.ResponseBankResponse1.ErrorMessage;
+                responseMsg = response.ResponseBankResponse1.ErrorMessage;
+            }
+            catch (Exception ex)
+            { 
+                _dbLoggerErrorRepository.LogSendEndPaymentToTibcoError(ex.ToString());
+            }
+
+
+            return responseMsg;
         }
     }
 }

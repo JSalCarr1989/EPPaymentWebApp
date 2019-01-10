@@ -11,6 +11,7 @@ namespace EPPaymentWebApp.Extensions
         {
             services.AddTransient<IDbConnectionRepository, DbConnectionRepository>();
             services.AddTransient<IDbLoggerRepository, DbLoggerRepository>();
+            services.AddTransient<IDbLoggerErrorRepository, DbLoggerErrorRepository>();
             services.AddTransient<IBeginPaymentRepository, BeginPaymentRepository>();
             services.AddTransient<IResponsePaymentRepository, ResponsePaymentRepository>();
             services.AddTransient<ILogPaymentRepository, LogPaymentRepository>();
@@ -18,6 +19,7 @@ namespace EPPaymentWebApp.Extensions
             services.AddTransient<IResponseBankRequestTypeTibcoRepository, ResponseBankRequestTypeTibcoRepository>();
             services.AddTransient<IEnterprisePaymentViewModelRepository, EnterprisePaymentViewModelRepository>();
             services.AddTransient<ISentToTibcoRepository, SentToTibcoRepository>();
+            
 
             return services;
         }

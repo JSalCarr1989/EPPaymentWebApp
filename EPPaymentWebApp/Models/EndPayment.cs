@@ -16,5 +16,7 @@
         public string ServiceRequest { get; set; }
         public string BillingAccount { get; set; }
         public string PaymentReference { get; set; }
+        public int ResponsePaymentId { get; set; }
+        public int EndPaymentStatusId { get; set; }
     }
 }

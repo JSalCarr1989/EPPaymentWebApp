@@ -119,11 +119,13 @@ namespace EPPaymentWebApp.Models
                                              TransactionNumber: {@TransactionNumber} 
                                              CcType: {@CcType} 
                                              IssuingBank: {@IssuingBank} 
-                                             Amount: { @Amount}
-                                             CardHolderName: { @CardHolderName}
+                                             Amount: {@Amount}
+                                             CardHolderName: {@CardHolderName}
                                              ServiceRequest: {@ServiceRequest} 
                                              BillingAccount: {@BillingAccount} 
                                              PaymentReference: {@PaymentReference} 
+                                             ResponsePaymentId: {@ResponsePaymentId}
+                                             EndPaymentStatusId: {@EndPaymentStatusId}
                                              PaymentStage:{@EndPaymentStage} 
                                              ComunicationStep:{@LogComunicationStep} 
                                              Application:{@Application}";
@@ -288,6 +290,8 @@ namespace EPPaymentWebApp.Models
                 endPayment.ServiceRequest,
                 endPayment.BillingAccount,
                 endPayment.PaymentReference,
+                endPayment.ResponsePaymentId,
+                endPayment.EndPaymentStatusId,
                 EndPaymentStage,
                 ComunicationStep,
                 Application

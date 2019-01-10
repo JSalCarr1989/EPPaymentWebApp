@@ -11,61 +11,73 @@ namespace EPPaymentWebApp.Models
 
         private readonly IDbConnectionRepository _dbConnectionRepository;
         private readonly IDbLoggerRepository _dbLoggerRepository;
+        private readonly IDbLoggerErrorRepository _dbLoggerErrorRepository;
         private readonly IDbConnection _conn;
 
         public EndPaymentRepository(IDbConnectionRepository dbConnectionRepository, 
-            IDbLoggerRepository dbLoggerRepository)
+            IDbLoggerRepository dbLoggerRepository,
+            IDbLoggerErrorRepository dbLoggerErrorRepository)
         {
             _dbConnectionRepository = dbConnectionRepository;
             _dbLoggerRepository = dbLoggerRepository;
+            _dbLoggerErrorRepository = dbLoggerErrorRepository;
             _conn = _dbConnectionRepository.CreateDbConnection();
         }
 
 
         public EndPayment GetEndPaymentByResponsePaymentId(int responsePaymentId)
         {
-            using (_conn)
+            EndPayment endPayment = null;
+
+            try
             {
-                _conn.Open();
+                using (_conn)
+                {
+                    _conn.Open();
 
-                var result = _conn.QueryFirst<EndPayment>(
-                    StaticEndPaymentProperties.SP_EP_GET_ENDPAYMENT_BY_RESPONSEPAYMENT_ID, 
-                    new { RESPONSEPAYMENT_ID = responsePaymentId},
-                    commandType: CommandType.StoredProcedure
-                    );
+                    endPayment = _conn.QueryFirst<EndPayment>(
+                        StaticEndPaymentProperties.SP_EP_GET_ENDPAYMENT_BY_RESPONSEPAYMENT_ID,
+                        new { RESPONSEPAYMENT_ID = responsePaymentId },
+                        commandType: CommandType.StoredProcedure
+                        );
 
-                _dbLoggerRepository.LogGetEndPayment(responsePaymentId,result);
+                    _dbLoggerRepository.LogGetEndPayment(responsePaymentId, endPayment);
 
-                return result;
+                    
+                }
             }
+            catch (Exception ex)
+            {
+                _dbLoggerErrorRepository.LogGetEndPaymentByResponsePaymentIdError(ex.ToString());
+            }
+
+            return endPayment;
+
         }
 
         public void UpdateEndPaymentSentStatus(int endPaymentId,string endPaymentSentStatus)
         {
-            using (_conn)
+            try
             {
-              
-               var parameters = new DynamicParameters();
+                using (_conn)
+                {
 
-               parameters.Add(StaticEndPaymentProperties.ENDPAYMENT_ID, endPaymentId);
-               parameters.Add(StaticEndPaymentProperties.ENDPAYMENT_SENT_STATUS, endPaymentSentStatus);
+                    var parameters = new DynamicParameters();
 
-                _conn.Open();
+                    parameters.Add(StaticEndPaymentProperties.ENDPAYMENT_ID, endPaymentId);
+                    parameters.Add(StaticEndPaymentProperties.ENDPAYMENT_SENT_STATUS, endPaymentSentStatus);
 
-                _conn.Query(StaticEndPaymentProperties.UPDATE_ENDPAYMENT_SENT_STATUS, parameters,commandType: CommandType.StoredProcedure);
+                    _conn.Open();
 
-                _dbLoggerRepository.LogUpdateEndPaymentSentStatus(endPaymentId, endPaymentSentStatus);
-                
+                    _conn.Query(StaticEndPaymentProperties.UPDATE_ENDPAYMENT_SENT_STATUS, parameters, commandType: CommandType.StoredProcedure);
+
+                    _dbLoggerRepository.LogUpdateEndPaymentSentStatus(endPaymentId, endPaymentSentStatus);
+
+                }
             }
-        }
-        //Codigo en desuso
-        public bool ValidateEndPaymentSentStatus(int endPaymentId)
-        {
-            using (_conn)
+            catch(Exception ex)
             {
-                _conn.Open();
-                var result = _conn.QueryFirstOrDefault<String>(StaticEndPaymentProperties.GET_ENDPAYMENT_SENT_STATUS_BY_ID, new { ENDPAYMENT_ID = endPaymentId }, commandType: CommandType.StoredProcedure);
-                return (result == StaticEndPaymentProperties.ENVIADO_TIBCO) ? true : false;
+                _dbLoggerErrorRepository.LogUpdateEndPaymentSentStatusError(ex.ToString());
             }
         }
     }
