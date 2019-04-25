@@ -6,16 +6,19 @@ namespace EPPaymentWebApp.Models
 {
     public class DbLoggerRepository : IDbLoggerRepository
     {
-        private readonly IDbConnectionRepository _connectionStringRepo;
+        //private readonly IDbConnectionRepository _connectionStringRepo;
+        private readonly IEnvironmentSettingsRepository _environmentSettingsRepository;
         private readonly ILogger _logger;
 
-        public DbLoggerRepository(IDbConnectionRepository connectionStringRepo)
+        public DbLoggerRepository(IEnvironmentSettingsRepository environmentSettingsRepository)
         {
-            _connectionStringRepo = connectionStringRepo;
+            //_connectionStringRepo = connectionStringRepo;
+            _environmentSettingsRepository = environmentSettingsRepository;
 
             var logger = new LoggerConfiguration()
                .MinimumLevel.Information()
-               .WriteTo.MSSqlServer(_connectionStringRepo.GetEpPaymentConnectionString(), EpLogTable)
+               //.WriteTo.MSSqlServer(_connectionStringRepo.GetEpPaymentConnectionString(), EpLogTable)
+               .WriteTo.MSSqlServer(_environmentSettingsRepository.GetConnectionStringSetting(), EpLogTable)
                .CreateLogger();
 
             _logger = logger;
@@ -152,23 +155,29 @@ namespace EPPaymentWebApp.Models
                                                      ComunicationStep:{@LogComunicationStep} 
                                                      Application:{@Application}";
 
-        public static string ShowedDataInViewMessageTemplate => @"Data that has passed to the view: Request Data: 
-                                                    Mp_order: {@Mp_order} 
-                                                    BillingAcount: {@BillingAccount} 
-                                                    Mp_amount: {@Mp_amount} 
-                                                    Currency: {@Currency} 
-                                                    Mp_customername: {@Mp_customername} 
-                                                    CreateToken: {@CreateToken}
-                                                    Response Data: 
-                                                    BankResponse: {@BankResponse}
-                                                    TransactionNumber: {@TransactionNumber}
-                                                    Token: {@Token}
-                                                    CcLastFour: {@CcLastFour}
-                                                    IssuingBank: {@IssuingBank}
-                                                    CcType: {@CcType}
-                                                    PaymentStage:{@ResponsePaymentStage} 
-                                                    ComunicationStep:{@LogComunicationStep} 
-                                                    Application:{@Application}";
+        //public static string ShowedDataInViewMessageTemplate => @"Data that has passed to the view: Request Data: 
+        //                                            Mp_order: {@Mp_order} 
+        //                                            BillingAcount: {@BillingAccount} 
+        //                                            Mp_amount: {@Mp_amount} 
+        //                                            Currency: {@Currency} 
+        //                                            Mp_customername: {@Mp_customername} 
+        //                                            CreateToken: {@CreateToken}
+        //                                            Response Data: 
+        //                                            BankResponse: {@BankResponse}
+        //                                            TransactionNumber: {@TransactionNumber}
+        //                                            Token: {@Token}
+        //                                            CcLastFour: {@CcLastFour}
+        //                                            IssuingBank: {@IssuingBank}
+        //                                            CcType: {@CcType}
+        //                                            PaymentStage:{@ResponsePaymentStage} 
+        //                                            ComunicationStep:{@LogComunicationStep} 
+        //                                            Application:{@Application}";
+
+        public static string CreatedEnvironmentSettingsObjectTemplate => @"The EnvironmenSettings Was read with the following Data:
+                                                                           ConnectionString{@ConnectionString}
+                                                                           MpSk:{@MpSk}
+                                                                           UrlSuccess:{@UrlSuccess}
+                                                                           UrlFailure:{@UrlFailure}";
 
         public void LogResponsedDataToDb(MultiPagosResponsePaymentDTO multiPagosResponse)
         {
@@ -332,27 +341,38 @@ namespace EPPaymentWebApp.Models
                 );
         }
 
-        public void LogShowedDataInView(EnterprisePaymentViewModel viewModel)
+        //public void LogShowedDataInView(EnterprisePaymentViewModel viewModel)
+        //{
+        //    _logger.Information(
+        //        ShowedDataInViewMessageTemplate,
+        //        viewModel.Mp_order,
+        //        viewModel.BillingAccount,
+        //        viewModel.Mp_amount,
+        //        viewModel.Currency,
+        //        viewModel.Mp_customername,
+        //        viewModel.CreateToken,
+        //        viewModel.BankResponse,
+        //        viewModel.TransactionNumber,
+        //        viewModel.Token,
+        //        viewModel.CcLastFour,
+        //        viewModel.IssuingBank,
+        //        viewModel.CcType,
+        //        ResponsePaymentStage,
+        //        ComunicationStep,
+        //        Application
+        //        );
+
+        //}
+
+        public void LogCreatedEnvironmentSettingsObject(EnvironmentSettings envSettingsObject)
         {
             _logger.Information(
-                ShowedDataInViewMessageTemplate,
-                viewModel.Mp_order,
-                viewModel.BillingAccount,
-                viewModel.Mp_amount,
-                viewModel.Currency,
-                viewModel.Mp_customername,
-                viewModel.CreateToken,
-                viewModel.BankResponse,
-                viewModel.TransactionNumber,
-                viewModel.Token,
-                viewModel.CcLastFour,
-                viewModel.IssuingBank,
-                viewModel.CcType,
-                ResponsePaymentStage,
-                ComunicationStep,
-                Application
+                CreatedEnvironmentSettingsObjectTemplate,
+                envSettingsObject.ConnectionString,
+                envSettingsObject.MpSk,
+                envSettingsObject.UrlSuccess,
+                envSettingsObject.UrlFailure
                 );
-
         }
     }
 }

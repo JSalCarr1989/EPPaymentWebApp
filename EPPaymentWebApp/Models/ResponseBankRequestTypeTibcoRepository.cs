@@ -22,6 +22,8 @@ namespace EPPaymentWebApp.Models
         public async Task<string> SendEndPaymentToTibco(EndPayment endPayment)
         {
 
+            //validamos si se envio
+
             string responseMsg = string.Empty;
 
             try

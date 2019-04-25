@@ -1,18 +1,21 @@
-﻿@model EnterprisePaymentViewModel
+﻿@model PaymentViewModel
 
 <div class="row">
     <div class="col-md-6">
-        <form id="requestPaymentForm" action="https://prepro.adquiracloud.mx/clb/endpoint/axtel/" method="post">
+        <form id="requestPaymentForm" action=@Model.MpEndpoint method="post">
             <div class="form-group">
                 <div id="panel-father-send-first" class="panel panel-primary">
                     <div id="panel-send-first" class="panel-heading">Datos de Envio al Banco</div>
-                    <div  class="panel-body">
+                    <div class="panel-body">
                         <label for="Mp_order">Service Request</label>
                         <input type="text" name="mp_order" id="mp_order" value=@Model.Mp_order class="form-control" readonly />
                         <label for="BillingAccount">Cta. Facturación</label>
                         <input type="text" id="BillingAccount" value=@Model.BillingAccount class="form-control" readonly />
                         <label for="Mp_amount">Monto a Pagar</label>
-                        <input type="number" name="mp_amount" id="mp_amount" value="0.00" class="form-control" placeholder="Monto a Pagar" />
+                        <div class="input-group">
+                            <span class="input-group-addon">$</span>
+                            <input type="text" name="mp_amount" id="mp_amount" value="0.00" class="form-control" placeholder="Monto a Pagar"  />
+                        </div>
                         <label for="Currency">Divisa</label>
                         <input type="text" id="Currency" value=@Model.Currency class="form-control" readonly />
                         <label for="Mp_customername">Nombre Pagador</label>
@@ -30,6 +33,9 @@
                         <input type="hidden" name="mp_urlsuccess" id="mp_urlsuccess" value=@Model.Mp_urlsuccess class="form-control" />
                         <input type="hidden" name="mp_urlfailure" id="mp_urlfailure" value=@Model.Mp_urlfailure class="form-control" />
                         <input type="hidden" name="mp_registersb" id="mp_registersb" value=@Model.Mp_registersb class="form-control" />
+                        <input type="hidden" id="netvaluesendpoint" value=@Model.NetValuesEndPoint class="form-control" />
+                        <input type="hidden" id="nethashendpoint" value=@Model.NetHashEndpoint class="form-control" />
+                        <input type="hidden" id="netrequestpaymentendpoint" value=@Model.NetRequestPaymentEndpoint class="form-control" />
                     </div>
                 </div>
             </div>

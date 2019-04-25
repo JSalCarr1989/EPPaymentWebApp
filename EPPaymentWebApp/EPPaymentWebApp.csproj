@@ -6,6 +6,55 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Connected Services\TibcoServiceReference\**" />
+    <Compile Remove="Enums\**" />
+    <Compile Remove="Helpers\**" />
+    <Compile Remove="Interfaces\**" />
+    <Compile Remove="Utilities\**" />
+    <Content Remove="Connected Services\TibcoServiceReference\**" />
+    <Content Remove="Enums\**" />
+    <Content Remove="Helpers\**" />
+    <Content Remove="Interfaces\**" />
+    <Content Remove="Utilities\**" />
+    <EmbeddedResource Remove="Connected Services\TibcoServiceReference\**" />
+    <EmbeddedResource Remove="Enums\**" />
+    <EmbeddedResource Remove="Helpers\**" />
+    <EmbeddedResource Remove="Interfaces\**" />
+    <EmbeddedResource Remove="Utilities\**" />
+    <None Remove="Connected Services\TibcoServiceReference\**" />
+    <None Remove="Enums\**" />
+    <None Remove="Helpers\**" />
+    <None Remove="Interfaces\**" />
+    <None Remove="Utilities\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Models\BeginPayment.cs" />
+    <Compile Remove="Models\BeginPaymentRepository.cs" />
+    <Compile Remove="Models\DbConnectionRepository.cs" />
+    <Compile Remove="Models\DbLoggerErrorRepository.cs" />
+    <Compile Remove="Models\DbLoggerRepository.cs" />
+    <Compile Remove="Models\EndPayment.cs" />
+    <Compile Remove="Models\EndPaymentRepository.cs" />
+    <Compile Remove="Models\EnterprisePaymentViewModel.cs" />
+    <Compile Remove="Models\EnterprisePaymentViewModelRepository.cs" />
+    <Compile Remove="Models\EnvironmentSettings.cs" />
+    <Compile Remove="Models\EnvironmentSettingsRepository.cs" />
+    <Compile Remove="Models\HashRepository.cs" />
+    <Compile Remove="Models\LogPayment.cs" />
+    <Compile Remove="Models\LogPaymentRepository.cs" />
+    <Compile Remove="Models\MultiPagosResponsePaymentDTO.cs" />
+    <Compile Remove="Models\ResponseBankRequestTypeTibcoRepository.cs" />
+    <Compile Remove="Models\ResponsePayment.cs" />
+    <Compile Remove="Models\ResponsePaymentDTO.cs" />
+    <Compile Remove="Models\ResponsePaymentDTORepository.cs" />
+    <Compile Remove="Models\ResponsePaymentRepository.cs" />
+    <Compile Remove="Models\SentToTibcoRepository.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="8.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
     <PackageReference Include="Dapper" Version="1.50.5" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
@@ -15,6 +64,7 @@
     <PackageReference Include="Serilog.Formatting.Compact" Version="1.0.1-dev-00922" />
     <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="5.1.2" />
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.1-dev-00771" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
     <PackageReference Include="System.ServiceModel.Duplex" Version="4.4.*" />
     <PackageReference Include="System.ServiceModel.Http" Version="4.4.*" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.4.*" />
@@ -24,6 +74,16 @@
 
   <ItemGroup>
     <WCFMetadata Include="Connected Services" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Connected Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="EPPCIDAL">
+      <HintPath>EPPCIDAL.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

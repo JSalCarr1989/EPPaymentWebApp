@@ -1,10 +1,15 @@
 {
   "version": "1.0",
   "defaultProvider": "cdnjs",
-  "libraries": [{
-  "provider": "cdnjs",
-  "library": "crypto-js@3.1.9-1",
-  "destination": "wwwroot/lib/crypto-js/"
-}
-]
+  "libraries": [
+    {
+      "provider": "cdnjs",
+      "library": "crypto-js@3.1.9-1",
+      "destination": "wwwroot/lib/crypto-js/"
+    },
+    {
+      "library": "autonumeric@4.1.0",
+      "destination": "wwwroot/lib/autonumeric/"
+    }
+  ]
 }

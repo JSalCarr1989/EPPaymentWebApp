@@ -29,10 +29,10 @@ namespace EPPaymentWebApp.Models
 
         public static string LogSendEndpaymentToTibcoMessageTemplateError => @"Error en SendEndPaymentToTibco: {@error}";
 
-        public static string GetByServiceRequestMessageTemplateError => @"The error: {@error} has ocurred in GetByServiceRequestFunction for 
-                                                                               the ServiceRequest:{@serviceRequest}";
-        public static string GenerateEnterprisePaymentViewModelRequestPaymentMessageTemplateError => @"The error: {@error} has ocurred in GenerateEnterprisePaymentViewModelRequestPayment
-                                                                                                       for the MpReference:{@mpReference} and MpOrder: {@mpOrder}";
+        //public static string GetByServiceRequestMessageTemplateError => @"The error: {@error} has ocurred in GetByServiceRequestFunction for 
+        //                                                                       the ServiceRequest:{@serviceRequest}";
+        //public static string GenerateEnterprisePaymentViewModelRequestPaymentMessageTemplateError => @"The error: {@error} has ocurred in GenerateEnterprisePaymentViewModelRequestPayment
+        //                                                                                               for the MpReference:{@mpReference} and MpOrder: {@mpOrder}";
 
         public static string LogCompute256HashMessageTemplateError => @"The error: {@error} has ocurred in Compute256Hash function";
 
@@ -52,17 +52,17 @@ namespace EPPaymentWebApp.Models
 
         public static string LogUpdateEndPaymentSentStatusMessageTemplateError => @"The error: {@error} has ocurred in UpdateEndPaymentSentStatus function";
 
-        public static string LogGetEnterprisePaymentViewModelMessageTemplateError => @"The error: {@error} has ocurred in GetEnterprisePaymentViewModel function";
+        //public static string LogGetEnterprisePaymentViewModelMessageTemplateError => @"The error: {@error} has ocurred in GetEnterprisePaymentViewModel function";
 
-        public void LogGenerateEnterprisePaymentViewModelRequestPaymentError(string error, string mpReference, string mpOrder)
-        {
-            _logger.Error(GenerateEnterprisePaymentViewModelRequestPaymentMessageTemplateError, error, mpReference, mpOrder);
-        }
+        //public void (string error, string mpReference, string mpOrder)
+        //{
+        //    _logger.Error(GenerateEnterprisePaymentViewModelRequestPaymentMessageTemplateError, error, mpReference, mpOrder);
+        //}
 
-        public void LogGetByServiceRequestError(string error, string serviceRequest)
-        {
-            _logger.Error(GetByServiceRequestMessageTemplateError, error, serviceRequest);
-        }
+        //public void LogGetByServiceRequestError(string error, string serviceRequest)
+        //{
+        //    _logger.Error(GetByServiceRequestMessageTemplateError, error, serviceRequest);
+        //}
         
         public void LogSendEndPaymentToTibcoError(string error)
         {
@@ -109,9 +109,9 @@ namespace EPPaymentWebApp.Models
             _logger.Error(LogUpdateEndPaymentSentStatusMessageTemplateError, error);
         }
 
-        public void LogGetEnterprisePaymentViewModelError(string error)
-        {
-            _logger.Error(LogGetEnterprisePaymentViewModelMessageTemplateError, error);
-        }
+        //public void LogGetEnterprisePaymentViewModelError(string error)
+        //{
+        //    _logger.Error(LogGetEnterprisePaymentViewModelMessageTemplateError, error);
+        //}
     }
 }

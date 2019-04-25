@@ -4,6 +4,7 @@ namespace EPPaymentWebApp.Interfaces
 {
     public interface IEnterprisePaymentViewModelRepository
     {
-        EnterprisePaymentViewModel GetEnterprisePaymentViewModel(string serviceRequest, string paymentReference);
+        //EnterprisePaymentViewModel GetEnterprisePaymentViewModel(string serviceRequest, string paymentReference);
+        //EnterprisePaymentViewModel GenerateEnterprisePaymentViewModelRequestPayment(BeginPayment beginPayment);
     }
 }

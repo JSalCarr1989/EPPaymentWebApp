@@ -5,49 +5,85 @@
 $(function () {
 
 
-    $('input[name="mp_amount"]').keyup(function () {
-
-        if ($(this).val().indexOf('.') != -1) {
-            if ($(this).val().split(".")[1].length > 2) {
-                if (isNaN(parseFloat(this.value))) return;
-                this.value = parseFloat(this.value).toFixed(2);
-            }
+    $('input[name="mp_amount"]').focus();
+    $('input[name="mp_amount"]').select();
+    
+    
+    new AutoNumeric(
+        '#mp_amount', {
+            decimalCharacter: '.',
+            digitGroupSeparator: ',',
         }
-        return this;
-    })
+       )
+
+
+    //$('input[name="mp_amount"]').keyup(function () {
+
+    //    var target = event.target,
+    //        position = target.selectionStart
+        
+    //    if (event.which >= 37 && event.which <= 40) return;
+
+    //    this.value = this.value.replace(/[,]+/g, "")
+
+
+
+
+
+    //    if ($(this).val().indexOf('.') != -1) {
+    //        if ($(this).val().split(".")[1].length > 2) {
+    //            if (isNaN(parseFloat(this.value))) return;        
+    //            this.value = parseFloat(this.value).toFixed(2);
+    //        }
+    //    }
+
+    //    this.value = this.value.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+
+        
+
+    //    target.selectionEnd = position;
+        
+
+    //    return this;
+            
+    //})
+
+
 
     $("#requestPaymentForm").submit(function (e) {
 
 
         
-        
             $.ajax({
                 async:false,
-                url: 'https://100.125.0.119:8443/api/values',
+                url: $('#netvaluesendpoint').val(),
                 type: 'GET',
                 dataType: 'json',
                 success: function (res) {
                     console.log(res);
                     $.ajax({
                         async:false,
-                        url: 'https://100.125.0.119:8443/api/Hash',
+                        url: $('#nethashendpoint').val(),
                         type: 'post',
                         dataType: 'json',
                         contentType: 'application/json; charset=utf-8',
                         data: JSON.stringify({
                             'paymentOrder': $('#mp_order').val(),
                             'paymentReference': $('#mp_reference').val(),
-                            'paymentAmount': $('#mp_amount').val()
+                            'paymentAmount': parseFloat($('#mp_amount').val().replace(/[,]+/g, ""))
                         }),
                         success: function (response) {
 
 
 
-                            console.log(response);
+                            
+                            console.log(response.hash)
                             
 
-                            
+                            //update de controles directo en DOM
                             $('input[name="mp_signature"]').val(response.hash);
+                            $('input[name="mp_amount"]').val(parseFloat($('#mp_amount').val().replace(/[,]+/g, "")))
+                            
 
                             var requestData = {
                                 MpAccount: $('#mp_account').val(),
@@ -56,7 +92,7 @@ $(function () {
                                 MpReference: $('#mp_reference').val(),
                                 MpNode: $('#mp_node').val(),
                                 MpConcept: $('#mp_concept').val(),
-                                MpAmount: $('#mp_amount').val(),
+                                MpAmount: parseFloat($('#mp_amount').val().replace(/[,]+/g, "")),
                                 MpCustomerName: $('#mp_customername').val(),
                                 MpCurrency: $('#mp_currency').val(),
                                 MpSignature: response.hash,
@@ -68,7 +104,7 @@ $(function () {
 
                             console.log(requestData);
                             $.ajax({
-                                url: 'https://100.125.0.119:8443/api/RequestPayment/',
+                                url: $('#netrequestpaymentendpoint').val(),
                                 async:false,
                                 type: 'post',
                                 dataType: 'json',

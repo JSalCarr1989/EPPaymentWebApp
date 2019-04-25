@@ -13,6 +13,7 @@ namespace EPPaymentWebApp.Interfaces
         void LogGetEndPayment(int responsePaymentId, EndPayment endPayment);
         void LogUpdateEndPaymentSentStatus(int endPayment, string endPaymentSentStatus);
         void LogSendEndPaymentToTibco(ResponseBankRequestType requestToTibco, ResponseBankResponse responseFromTibco);
-        void LogShowedDataInView(EnterprisePaymentViewModel viewModel);
+        //void LogShowedDataInView(EnterprisePaymentViewModel viewModel);
+        void LogCreatedEnvironmentSettingsObject(EnvironmentSettings envSettingsObject);
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
+using AutoMapper;
 using EPPaymentWebApp.Extensions;
+using EPPaymentWebApp.Mappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -41,6 +43,18 @@ namespace EPPaymentWebApp
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            //codigo mapping
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new MappingProfile());
+            });
+
+            IMapper mapper = mappingConfig.CreateMapper();
+
+            services.AddSingleton(mapper);
+
+            //codigo mapping
+
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
@@ -55,7 +69,7 @@ namespace EPPaymentWebApp
             }
             else
             {
-                //app.UseDeveloperExceptionPage();
+                
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
                 
